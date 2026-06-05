@@ -1,0 +1,2846 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <!-- 关键：不发送 referer，用于绕过 B 站图片防盗链，让封面能正常显示 -->
+  <meta name="referrer" content="no-referrer">
+  <meta name="description" content="安享盾 - 老年人防诈骗智能科普平台，提供反诈视频、真实案例、AI智能问答和反诈闯关游戏，帮助老年人识别和防范各类诈骗">
+  <meta name="keywords" content="安享盾,老年人防诈骗,反诈科普,防骗知识,AI反诈,反诈视频">
+  <title>安享盾</title>
+
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/RecordRTC/5.6.2/RecordRTC.min.js"></script>
+
+  <style>
+    :root {
+      --primary-color: #0d6efd;
+      --primary-dark: #0a58ca;
+      --danger-color: #d32f2f;
+      --warning-color: #ffc107;
+      --success-color: #198754;
+      --success-dark: #157347;
+      --info-color: #0dcaf0;
+      --text-color: #222;
+      --bg-color: #e8f4ff;
+      --white: #ffffff;
+      --border-radius: 1rem;
+      --transition-speed: 0.3s;
+      --shadow-light: 0 0.25rem 0.75rem rgba(0,0,0,0.1);
+      --shadow-medium: 0 0.375rem 1.25rem rgba(0,0,0,0.15);
+      --font-size-base: 16px;
+      --font-size-large: 24px;
+    }
+
+    /* ===== 深色模式 ===== */
+    body.dark-mode {
+      --bg-color: #0f172a;
+      --text-color: #e5e7eb;
+      --white: #020617;
+      --primary-color: #38bdf8;
+      --primary-dark: #2563eb;
+      --success-color: #22c55e;
+      --danger-color: #f87171;
+      --warning-color: #facc15;
+      --info-color: #22d3ee;
+      background-image: linear-gradient(180deg, #020617 0%, #0f172a 100%);
+      color: var(--text-color);
+    }
+    body.dark-mode .container,
+    body.dark-mode .module,
+    body.dark-mode .chat-box,
+    body.dark-mode .game-box,
+    body.dark-mode .say-box,
+    body.dark-mode .history-content,
+    body.dark-mode .history-header,
+    body.dark-mode .history-body {
+      background: rgba(15, 23, 42, 0.95);
+      color: var(--text-color);
+    }
+    body.dark-mode .nav-btn,
+    body.dark-mode .btn-secondary,
+    body.dark-mode .category-btn,
+    body.dark-mode .font-btn,
+    body.dark-mode .btn-voice {
+      background: #1e293b;
+      color: #e5e7eb;
+      border-color: #334155;
+    }
+    body.dark-mode .nav-btn.active,
+    body.dark-mode .category-btn.active,
+    body.dark-mode .category-btn:hover,
+    body.dark-mode .font-btn.active {
+      background: var(--primary-color);
+      color: #020617;
+    }
+    body.dark-mode .video-info,
+    body.dark-mode .video-card {
+      background: #020617;
+    }
+    body.dark-mode .video-title { color: #e5e7eb; }
+    body.dark-mode .video-meta { color: #aaa; }
+    body.dark-mode input,
+    body.dark-mode textarea {
+      background: #1e293b;
+      color: #e5e7eb;
+      border-color: #334155;
+    }
+    body.dark-mode .module h2 { color: #38bdf8; border-bottom-color: #1e3a5f; }
+    body.dark-mode .case-item { background: linear-gradient(135deg, #1a0a0a, #2d1010); }
+    body.dark-mode .case-title { color: #f87171; }
+    body.dark-mode .case-content { color: #ccc; }
+    body.dark-mode .game-stats { background: #1e293b; color: #e5e7eb; }
+    body.dark-mode .game-stats span { background: #0f172a; border-color: #334155; }
+    body.dark-mode .game-question { background: #020617; }
+    body.dark-mode .game-question h3 { color: #f87171; }
+    body.dark-mode .history-item { background: #020617; }
+    body.dark-mode .detect-intro { background: linear-gradient(135deg, #1a1a00, #2d2d00); color: #e5d000; }
+    body.dark-mode .footer { background: rgba(15, 23, 42, 0.9); color: #aaa; }
+    body.dark-mode .police-box:hover,
+    body.dark-mode .police-box:focus-within { background: rgba(30, 41, 59, 0.8); }
+    body.dark-mode .game-box { background: linear-gradient(135deg, #1a0a0a, #2d1010); border-color: #4a2020; }
+    body.dark-mode .chat-box { border-color: #334155; }
+    body.dark-mode .category-btn { border-color: #334155; }
+    body.dark-mode .nav-btn { border-color: #334155; }
+    body.dark-mode #detectInput:focus,
+    body.dark-mode .input-line input:focus,
+    body.dark-mode .video-search-box input:focus { box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2); }
+    body.dark-mode .example-btn { background: #1e293b; border-color: #38bdf8; color: #38bdf8; }
+    body.dark-mode .example-btn:hover { background: #38bdf8; color: #020617; }
+    body.dark-mode #ocrStatus { color: #aaa; }
+    body.dark-mode .history-header { border-bottom-color: #334155; }
+    body.dark-mode .btn-close { background: #334155; color: #e5e7eb; }
+    body.dark-mode .btn-close:hover { background: #475569; }
+    body.dark-mode .result-correct { background: linear-gradient(135deg, #0a1f0a, #1a3a1a); border-color: #22c55e; color: #bbf7d0; }
+    body.dark-mode .result-wrong { background: linear-gradient(135deg, #1f0a0a, #3a1a1a); border-color: #f87171; color: #fecaca; }
+    body.dark-mode .game-video { background: rgba(15, 23, 42, 0.7); border-color: #334155; }
+    body.dark-mode .result-wrong .game-video { background: rgba(30, 10, 10, 0.8); border-color: #4a2020; }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Microsoft YaHei", "微软雅黑", "PingFang SC", "Hiragino Sans GB", sans-serif;
+    }
+
+    html { font-size: var(--font-size-base); }
+    html.large-font { font-size: var(--font-size-large); }
+
+    body {
+      background-color: var(--bg-color);
+      background-image: linear-gradient(180deg, #f7fcff 0%, #e8f4ff 100%);
+      background-attachment: fixed;
+      line-height: 1.6;
+      color: var(--text-color);
+      min-height: 100vh;
+      font-size: 1rem;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 6px;
+      background: linear-gradient(90deg, var(--primary-color), var(--danger-color), var(--warning-color), var(--primary-color));
+      z-index: 9999;
+    }
+
+    /* 通用按钮样式 */
+    .btn {
+      padding: 0.75rem 1.625rem;
+      font-weight: bold;
+      border: none;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: all var(--transition-speed);
+      font-size: 1.125rem;
+    }
+    .btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-medium);
+    }
+    .btn:active:not(:disabled) {
+      transform: scale(0.96);
+      box-shadow: inset 0 4px 8px rgba(0,0,0,0.2);
+    }
+    .btn:focus-visible {
+      outline: 2px solid var(--primary-color);
+      outline-offset: 2px;
+    }
+    .btn-primary { background: var(--primary-color); color: var(--white); }
+    .btn-secondary { background: var(--white); color: var(--primary-color); border: 2px solid var(--primary-color); }
+    .btn-success { background: var(--success-color); color: var(--white); }
+    .btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none !important;
+      opacity: 0.7;
+    }
+
+    /* 容器样式 */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1.25rem;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* 警察卡通区域 */
+    .police-box {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+      cursor: pointer;
+      padding: 0.75rem;
+      border-radius: var(--border-radius);
+      transition: background-color var(--transition-speed);
+      border: 2px solid transparent;
+    }
+    .police-box:hover,
+    .police-box:focus-within {
+      background: rgba(255, 255, 255, 0.8);
+      border-color: var(--primary-color);
+      outline: none;
+    }
+    .police-icon {
+      width: 5.5rem;
+      height: 5.5rem;
+      background: linear-gradient(135deg, #e3f2fd, var(--primary-color));
+      border-radius: 50%;
+      border: 0.25rem solid var(--primary-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--white);
+      font-size: 2.5rem;
+    }
+    .police-icon::before { content: "👮"; }
+    .say-box {
+      position: relative;
+      background: var(--white);
+      padding: 1rem 1.5rem;
+      border-radius: 0.875rem;
+      font-size: 1.125rem;
+      font-weight: bold;
+      color: var(--primary-color);
+      box-shadow: var(--shadow-light);
+      max-width: 80%;
+    }
+    .say-box::before {
+      content: "";
+      position: absolute;
+      left: -0.625rem;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 0;
+      height: 0;
+      border-top: 0.625rem solid transparent;
+      border-right: 0.625rem solid var(--white);
+      border-bottom: 0.625rem solid transparent;
+    }
+
+    /* 头部区域 */
+    .header {
+      text-align: center;
+      background: linear-gradient(120deg, var(--primary-color), var(--primary-dark));
+      color: var(--white);
+      padding: 1.875rem 1.25rem;
+      border-radius: var(--border-radius);
+      margin-bottom: 1.5rem;
+      box-shadow: var(--shadow-medium);
+      position: relative;
+    }
+    .header h1 { font-size: 1.75rem; margin-bottom: 0.5rem; font-weight: 700; }
+    .header p { font-size: 1.125rem; opacity: 0.95; }
+
+    .dark-mode-toggle {
+      position: absolute;
+      top: 0.75rem;
+      right: 1rem;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.5);
+      background: rgba(255,255,255,0.15);
+      color: #fff;
+      font-size: 1.2rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition-speed);
+    }
+    .dark-mode-toggle:hover { background: rgba(255,255,255,0.3); border-color: #fff; }
+
+    /* 字体切换按钮 */
+    .font-group {
+      text-align: center;
+      margin-bottom: 1.25rem;
+    }
+    .font-btn {
+      padding: 0.75rem 1.625rem;
+      font-weight: bold;
+      border: none;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: all var(--transition-speed);
+      font-size: 1.125rem;
+      margin: 0 0.5rem;
+      background: var(--white);
+      color: var(--primary-color);
+      border: 2px solid transparent;
+    }
+    .font-btn.active { background: var(--primary-color); color: var(--white); border-color: var(--primary-color); }
+    .font-btn:not(.active):hover { border-color: var(--primary-color); }
+
+    /* 导航区域 */
+    .nav {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-bottom: 1.625rem;
+    }
+    .nav-btn {
+      padding: 1rem 1.5rem;
+      font-size: 1.125rem;
+      background: var(--white);
+      color: var(--primary-color);
+      border: 2px solid transparent;
+      min-width: 150px;
+      border-radius: var(--border-radius);
+      font-weight: bold;
+      cursor: pointer;
+      transition: all var(--transition-speed);
+    }
+    .nav-btn.active { background: var(--primary-color); color: var(--white); border-color: var(--primary-color); }
+    .nav-btn:not(.active):hover { border-color: var(--primary-color); }
+
+    /* 模块内容 */
+    .module {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: var(--border-radius);
+      padding: 2rem;
+      margin-bottom: 1.75rem;
+      box-shadow: 0 0.5rem 1.5rem rgba(13, 110, 255, 0.1);
+      display: none;
+      animation: fadeIn 0.5s ease;
+    }
+    .module.active { display: block; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .module h2 {
+      font-size: 1.5rem;
+      color: #0d47a1;
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.875rem;
+      border-bottom: 2px solid #e3f2fd;
+      font-weight: 700;
+    }
+
+    /* 视频搜索和分类 */
+    .video-controls { margin-bottom: 2rem; }
+    .video-search-box {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+    .video-search-box input {
+      flex: 1;
+      min-width: 200px;
+      padding: 1rem 1.25rem;
+      font-size: 1.125rem;
+      border: 2px solid #ddd;
+      border-radius: var(--border-radius);
+      outline: none;
+      transition: all var(--transition-speed);
+    }
+    .video-search-box input:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+    }
+    .video-categories { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; }
+    .category-btn {
+      padding: 0.5rem 1.25rem;
+      background: var(--white);
+      color: var(--primary-color);
+      border: 2px solid var(--primary-color);
+      border-radius: 2rem;
+      cursor: pointer;
+      transition: all var(--transition-speed);
+      font-size: 0.875rem;
+    }
+    .category-btn:hover, .category-btn.active { background: var(--primary-color); color: var(--white); }
+
+    /* 视频区域 */
+    .video-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+    .video-card {
+      border-radius: 1rem;
+      overflow: hidden;
+      background: var(--white);
+      box-shadow: var(--shadow-light);
+      display: flex;
+      flex-direction: column;
+      transition: all var(--transition-speed);
+    }
+    .video-card:hover { transform: translateY(-5px); box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.15); }
+    .video-thumbnail {
+      position: relative;
+      width: 100%;
+      height: 180px;
+      overflow: hidden;
+      background: linear-gradient(135deg, #e3f2fd, var(--primary-color));
+    }
+    .video-thumbnail iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+    }
+    /* 真实封面图（YouTube 风格） */
+    .video-cover {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.45s ease;
+      background: #000;
+    }
+    .video-card:hover .video-cover { transform: scale(1.06); }
+    /* 封面缺失/加载失败时的降级占位（图标 + 渐变） */
+    .thumb-fallback {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    .thumb-fallback .fallback-icon { font-size: 3.5rem; }
+    /* 顶部轻微暗角，让播放键和角标更清晰 */
+    .video-thumbnail::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(0,0,0,0) 55%, rgba(0,0,0,0.35) 100%);
+      pointer-events: none;
+    }
+    /* 右下角来源角标，像视频时长那样 */
+    .video-source-badge {
+      position: absolute;
+      right: 0.5rem;
+      bottom: 0.5rem;
+      background: rgba(0,0,0,0.75);
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: bold;
+      padding: 0.15rem 0.55rem;
+      border-radius: 0.35rem;
+      letter-spacing: 0.5px;
+      z-index: 2;
+    }
+    .video-play-btn {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      cursor: pointer;
+      transition: all var(--transition-speed);
+      pointer-events: none;
+      z-index: 2;
+    }
+    .video-card:hover .video-play-btn {
+      background: var(--danger-color);
+      transform: translate(-50%, -50%) scale(1.12);
+    }
+    .video-info { padding: 1rem; flex: 1; display: flex; flex-direction: column; }
+    .video-title { font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-color); flex: 1; }
+    .video-meta { display: flex; justify-content: space-between; align-items: center; font-size: 0.875rem; color: #666; margin-top: 0.5rem; }
+    .video-category { background: var(--primary-color); color: white; padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.75rem; }
+    .no-videos { text-align: center; padding: 3rem; color: #666; font-size: 1.125rem; grid-column: 1 / -1; }
+
+    /* 诈骗案例 */
+    .case-item {
+      background: linear-gradient(135deg, #fff9f9, #ffeaea);
+      border-left: 0.375rem solid var(--danger-color);
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+      border-radius: 0.75rem;
+      transition: all var(--transition-speed);
+    }
+    .case-item:hover { transform: translateX(5px); box-shadow: var(--shadow-light); }
+    .case-title { font-size: 1.25rem; font-weight: bold; color: #c62828; margin-bottom: 0.625rem; }
+    .case-content { font-size: 1.125rem; margin-bottom: 1rem; line-height: 1.7; }
+    .case-btns { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; }
+    .btn-video {
+      background: #ff6b35;
+      color: var(--white);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      padding: 0.75rem 1.625rem;
+      font-weight: bold;
+      border-radius: var(--border-radius);
+      font-size: 1.125rem;
+      transition: all var(--transition-speed);
+    }
+    .btn-video:hover { background: #e05520; transform: translateY(-2px); box-shadow: var(--shadow-medium); }
+
+    /* AI聊天区域 */
+    .chat-wrap { display: flex; flex-direction: column; height: 400px; }
+    .chat-box {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem;
+      background: #f8fcff;
+      border-radius: var(--border-radius);
+      margin-bottom: 1rem;
+      border: 1px solid #e3f2fd;
+      scrollbar-width: thin;
+      scrollbar-color: var(--primary-color) #f1f1f1;
+    }
+    .chat-box::-webkit-scrollbar { width: 6px; }
+    .chat-box::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 3px; }
+    .chat-box::-webkit-scrollbar-thumb { background: var(--primary-color); border-radius: 3px; }
+    .msg {
+      margin: 0.75rem 0;
+      padding: 1rem 1.25rem;
+      border-radius: 1rem;
+      max-width: 85%;
+      font-size: 1.125rem;
+      line-height: 1.6;
+      animation: fadeInUp 0.3s ease;
+      word-wrap: break-word;
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .user { background: var(--primary-color); color: var(--white); margin-left: auto; }
+    .bot { background: var(--bg-color); color: var(--text-color); margin-right: auto; }
+    .input-line { display: flex; gap: 0.75rem; align-items: stretch; }
+
+    .btn-voice {
+      padding: 0 1.25rem;
+      font-size: 1.25rem;
+      background: var(--white);
+      color: var(--primary-color);
+      border: 2px solid #ddd;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition-speed);
+    }
+    .btn-voice:hover { background: #f0f7ff; border-color: var(--primary-color); }
+    .btn-voice.recording {
+      background: var(--danger-color);
+      color: var(--white);
+      border-color: var(--danger-color);
+      animation: pulse-recording 1.5s infinite;
+    }
+    @keyframes pulse-recording {
+      0% { box-shadow: 0 0 0 0 rgba(211, 47, 47, 0.7); }
+      70% { box-shadow: 0 0 0 10px rgba(211, 47, 47, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(211, 47, 47, 0); }
+    }
+    .input-line input {
+      flex: 1;
+      padding: 1rem 1.25rem;
+      font-size: 1.125rem;
+      border: 2px solid #ddd;
+      border-radius: var(--border-radius);
+      outline: none;
+      transition: all var(--transition-speed);
+    }
+    .input-line input:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+    }
+    .input-line button.btn-success {
+      padding: 1rem 2rem;
+      font-size: 1.125rem;
+      font-weight: bold;
+      background: var(--success-color);
+      color: var(--white);
+      border: none;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      transition: all var(--transition-speed);
+    }
+    .input-line button.btn-success:hover { background: var(--success-dark); }
+
+    /* 游戏区域 */
+    .game-box {
+      background: linear-gradient(135deg, #fff8f8, #ffeaea);
+      border-radius: var(--border-radius);
+      padding: 1.75rem;
+      border: 2px solid #ffcaca;
+    }
+    .game-stats {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      background: #fff;
+      padding: 1rem;
+      border-radius: var(--border-radius);
+      margin-bottom: 1.25rem;
+      font-weight: bold;
+      color: var(--primary-dark);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .game-stats span {
+      background: #f0f7ff;
+      padding: 0.5rem 1rem;
+      border-radius: 2rem;
+      border: 1px solid #d0e3ff;
+    }
+    .game-score {
+      font-size: 1.375rem;
+      font-weight: bold;
+      color: #e65100;
+      text-align: center;
+      margin-bottom: 1.25rem;
+    }
+    .game-question {
+      background: var(--white);
+      border-radius: var(--border-radius);
+      padding: 1.75rem;
+      margin-bottom: 1.25rem;
+      box-shadow: var(--shadow-light);
+    }
+    .game-question h3 { font-size: 1.5rem; color: #c62828; margin-bottom: 1rem; text-align: center; }
+    .game-desc { font-size: 1.25rem; line-height: 1.7; margin-bottom: 1.5rem; text-align: center; }
+    .game-btns { display: grid; gap: 1rem; }
+    .game-btn {
+      padding: 1.125rem;
+      font-size: 1.25rem;
+      font-weight: bold;
+      border: none;
+      border-radius: var(--border-radius);
+      background: var(--primary-color);
+      color: var(--white);
+      cursor: pointer;
+      text-align: center;
+      transition: all var(--transition-speed);
+    }
+    .game-btn:hover:not(:disabled) { background: var(--primary-dark); }
+    .game-btn:active:not(:disabled) { transform: scale(0.97); }
+    .game-result {
+      font-size: 1.25rem;
+      line-height: 1.7;
+      margin-top: 1.5rem;
+      padding: 1.25rem;
+      border-radius: var(--border-radius);
+      animation: fadeIn 0.5s ease;
+    }
+    .result-correct { background: linear-gradient(135deg, #e6f7e8, #d4edda); border: 2px solid #2e7d32; color: #155724; }
+    .result-wrong { background: linear-gradient(135deg, #ffebee, #f8d7da); border: 2px solid var(--danger-color); color: #721c24; }
+    .game-video {
+      margin-top: 1.5rem;
+      padding: 1.25rem;
+      border-radius: var(--border-radius);
+      background: rgba(255,255,255,0.7);
+      border: 2px dashed #aac4ff;
+      animation: fadeIn 0.5s ease 0.3s both;
+    }
+    .result-wrong .game-video { border-color: #f5a0a0; background: rgba(255,240,240,0.8); }
+    .next-btn {
+      margin-top: 1.25rem;
+      padding: 1rem;
+      font-size: 1.25rem;
+      font-weight: bold;
+      background: var(--success-color);
+      color: var(--white);
+      border: none;
+      border-radius: var(--border-radius);
+      cursor: pointer;
+      width: 100%;
+      transition: all var(--transition-speed);
+    }
+    .next-btn:hover { background: var(--success-dark); }
+    .game-end { text-align: center; padding: 2rem 1.25rem; animation: fadeIn 0.5s ease; }
+    .game-end h2 { font-size: 1.75rem; color: var(--success-color); margin-bottom: 1.25rem; }
+    .game-end p { font-size: 1.25rem; margin-bottom: 1.25rem; }
+
+    /* 历史记录弹窗 */
+    .history-modal {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6); z-index: 10000;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; visibility: hidden; pointer-events: none; transition: all 0.3s ease;
+    }
+    .history-modal.show { opacity: 1; visibility: visible; pointer-events: auto; }
+    .history-content {
+      background: var(--white); width: 95%; max-width: 800px; height: 85vh;
+      border-radius: var(--border-radius); display: flex; flex-direction: column;
+      box-shadow: var(--shadow-medium); transform: translateY(20px); transition: transform 0.3s ease;
+    }
+    .history-modal.show .history-content { transform: translateY(0); }
+    .history-header {
+      padding: 1.25rem 1.5rem; border-bottom: 2px solid #e3f2fd;
+      display: flex; justify-content: space-between; align-items: center; background: #fff;
+      border-radius: var(--border-radius) var(--border-radius) 0 0;
+    }
+    .history-header h3 { margin: 0; font-size: 1.5rem; color: var(--primary-dark); }
+    .btn-close {
+      background: #f1f1f1; border: none; font-size: 1.5rem; width: 40px; height: 40px;
+      border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: background 0.2s;
+    }
+    .btn-close:hover { background: #e0e0e0; }
+    .history-body {
+      flex: 1; overflow-y: auto; padding: 1.5rem; background: #f8fcff;
+      border-radius: 0 0 var(--border-radius) var(--border-radius);
+    }
+    .history-item { background: #fff; padding: 1.25rem; border-radius: var(--border-radius); margin-bottom: 1.25rem; box-shadow: var(--shadow-light); }
+    .history-item.h-correct { border-left: 5px solid var(--success-color); }
+    .history-item.h-wrong { border-left: 5px solid var(--danger-color); }
+    .h-tag { display: inline-block; padding: 0.3rem 0.8rem; border-radius: 2rem; font-size: 0.9rem; color: #fff; font-weight: bold; }
+    .h-tag-correct { background: var(--success-color); }
+    .h-tag-wrong { background: var(--danger-color); }
+
+    /* 诈骗检测模块 */
+    .detect-intro {
+      background: linear-gradient(135deg, #fff8e1, #fff3cd); border: 2px solid #ffc107;
+      border-radius: var(--border-radius); padding: 1.25rem 1.5rem;
+      margin-bottom: 1.25rem; font-size: 1.125rem; line-height: 1.8; color: #5d4037;
+    }
+    .detect-examples { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; margin-bottom: 1rem; }
+    .example-btn {
+      padding: 0.45rem 1rem; background: #e8f4ff; color: var(--primary-color);
+      border: 1.5px solid var(--primary-color); border-radius: 2rem; cursor: pointer;
+      font-size: 0.95rem; font-weight: bold; transition: all var(--transition-speed);
+    }
+    .example-btn:hover { background: var(--primary-color); color: #fff; }
+    #detectInput {
+      width: 100%; padding: 1rem 1.25rem; font-size: 1.125rem;
+      border: 2px solid #ddd; border-radius: var(--border-radius); resize: vertical;
+      margin-bottom: 1rem; outline: none; line-height: 1.7; transition: border-color var(--transition-speed);
+    }
+    #detectInput:focus { border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(13,110,253,0.1); }
+    .btn-detect {
+      width: 100%; padding: 1.1rem; font-size: 1.25rem; font-weight: bold;
+      background: linear-gradient(90deg, #0d6efd, #6610f2); color: #fff; border: none;
+      border-radius: var(--border-radius); cursor: pointer; margin-bottom: 1.25rem; transition: all var(--transition-speed);
+    }
+    .btn-detect:hover:not(:disabled) { opacity: 0.9; transform: translateY(-2px); box-shadow: var(--shadow-medium); }
+    .detect-result { border-radius: var(--border-radius); padding: 1.5rem; font-size: 1.125rem; line-height: 1.8; animation: fadeIn 0.4s ease; }
+    .detect-danger { background: linear-gradient(135deg, #ffebee, #fce4ec); border: 2px solid #d32f2f; color: #7f0000; }
+    .detect-safe { background: linear-gradient(135deg, #e8f5e9, #dcedc8); border: 2px solid #2e7d32; color: #1b5e20; }
+    .detect-warning { background: linear-gradient(135deg, #fff8e1, #fff3cd); border: 2px solid #f57f17; color: #5d4037; }
+    .detect-result h3 { font-size: 1.4rem; margin-bottom: 0.75rem; }
+    .risk-tag { display: inline-block; padding: 0.3rem 1rem; border-radius: 2rem; font-weight: bold; font-size: 1rem; margin-bottom: 1rem; color: #fff; }
+
+    /* 来电/短信场景选择按钮 */
+    .scene-row { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; margin-bottom: 1rem; }
+    .scene-label { font-size: 1rem; color: #555; font-weight: bold; }
+    .scene-btn {
+      background: var(--white); color: var(--primary-color);
+      border: 2px solid var(--primary-color); border-radius: var(--border-radius);
+      padding: 0.5rem 1rem; font-size: 1.05rem; font-weight: bold; cursor: pointer;
+      transition: all var(--transition-speed);
+    }
+    .scene-btn:hover { transform: translateY(-2px); box-shadow: var(--shadow-light); }
+    .scene-btn.active { background: var(--primary-color); color: #fff; }
+    body.dark-mode .scene-btn { background: #1e293b; border-color: #38bdf8; color: #38bdf8; }
+    body.dark-mode .scene-btn.active { background: var(--primary-color); color: #020617; }
+
+    /* 转发给子女 / 求助框 */
+    .forward-box {
+      margin-top: 1.25rem; padding: 1rem 1.25rem; border-radius: var(--border-radius);
+      background: rgba(255,255,255,0.65); border: 1px dashed rgba(0,0,0,0.15);
+    }
+    body.dark-mode .forward-box { background: rgba(15,23,42,0.5); border-color: #334155; }
+    .forward-box .forward-tip { font-size: 1.1rem; font-weight: bold; margin-bottom: 0.75rem; }
+    .forward-btns { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+    .btn-forward, .btn-call-family, .btn-copy-content {
+      display: inline-flex; align-items: center; gap: 0.4rem; border: none;
+      padding: 0.7rem 1.25rem; border-radius: var(--border-radius);
+      font-size: 1.1rem; font-weight: bold; cursor: pointer; color: #fff;
+      transition: all var(--transition-speed); text-decoration: none;
+    }
+    .btn-forward { background: var(--primary-color); }
+    .btn-call-family { background: var(--success-color); }
+    .btn-copy-content { background: #6c757d; }
+    .btn-forward:hover, .btn-call-family:hover, .btn-copy-content:hover { transform: translateY(-2px); box-shadow: var(--shadow-medium); }
+
+    /* 每日反诈提醒卡片 */
+    .daily-tip {
+      background: linear-gradient(135deg, #fff8e1, #ffecb3);
+      border: 1px solid #ffe082;
+      border-left: 6px solid var(--warning-color);
+      border-radius: var(--border-radius);
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.25rem;
+      box-shadow: var(--shadow-light);
+      animation: fadeIn 0.4s ease;
+    }
+    .daily-tip-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+    .daily-tip-headline { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; font-size: 1.15rem; color: #5d4037; }
+    .daily-tip-date { color: #8d6e63; font-size: 0.95rem; }
+    .daily-tip-badge { font-size: 0.85rem; font-weight: bold; padding: 0.1rem 0.6rem; border-radius: 1rem; }
+    .badge-live { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+    .badge-local { background: #e3f2fd; color: #1565c0; border: 1px solid #90caf9; }
+    .daily-tip-actions { display: flex; gap: 0.4rem; flex-shrink: 0; }
+    .tip-icon-btn {
+      background: rgba(255,255,255,0.7); border: 1px solid #ffe082; border-radius: 0.6rem;
+      width: 2.2rem; height: 2.2rem; font-size: 1.1rem; cursor: pointer; line-height: 1;
+      transition: all var(--transition-speed);
+    }
+    .tip-icon-btn:hover { background: #fff; transform: translateY(-1px); }
+    .tip-icon-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .daily-tip-body { margin-top: 0.75rem; }
+    .daily-tip-title { font-size: 1.3rem; color: #bf360c; margin-bottom: 0.5rem; }
+    .daily-tip-text { font-size: 1.15rem; color: #4e342e; line-height: 1.7; margin-bottom: 0.75rem; }
+    .daily-tip-case {
+      background: rgba(255,255,255,0.7); border-radius: 0.6rem; padding: 0.75rem 1rem;
+      font-size: 1.05rem; color: #5d4037; line-height: 1.7;
+    }
+    .daily-tip-case-label {
+      display: inline-block; background: var(--danger-color); color: #fff;
+      font-size: 0.85rem; font-weight: bold; padding: 0.15rem 0.6rem; border-radius: 0.5rem; margin-right: 0.5rem;
+    }
+    .tip-more-btn {
+      background: none; border: none; color: var(--primary-dark); font-size: 1.05rem;
+      font-weight: bold; cursor: pointer; padding: 0.3rem 0.4rem; border-radius: 0.5rem;
+    }
+    .tip-more-btn:hover { text-decoration: underline; }
+    /* 深色模式 */
+    body.dark-mode .daily-tip { background: linear-gradient(135deg, #2a2200, #3a2e00); border-color: #5a4a00; border-left-color: var(--warning-color); }
+    body.dark-mode .daily-tip-headline { color: #ffe082; }
+    body.dark-mode .daily-tip-date { color: #d7c79a; }
+    body.dark-mode .daily-tip-title { color: #ffab91; }
+    body.dark-mode .daily-tip-text { color: #ede0d4; }
+    body.dark-mode .daily-tip-case { background: rgba(0,0,0,0.25); color: #e0d6c8; }
+    body.dark-mode .tip-icon-btn { background: rgba(0,0,0,0.25); border-color: #5a4a00; color: #ffe082; }
+    body.dark-mode .tip-more-btn { color: #38bdf8; }
+
+    /* 导航"转账冷静"红色急刹按钮 */
+    .nav-btn-stop { border-color: var(--danger-color) !important; color: var(--danger-color); font-weight: bold; }
+    .nav-btn-stop.active { background: var(--danger-color) !important; color: #fff !important; border-color: var(--danger-color) !important; }
+    .nav-btn-stop:not(.active):hover { border-color: var(--danger-color); background: #fff5f5; }
+    body.dark-mode .nav-btn-stop { color: #f87171; border-color: #f87171 !important; }
+    body.dark-mode .nav-btn-stop.active { background: var(--danger-color) !important; color: #fff !important; }
+
+    /* —— 话术拆解 —— */
+    .guard-examples { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; margin-top: 1rem; }
+    .guard-alert {
+      background: linear-gradient(135deg, #ffebee, #ffcdd2);
+      border: 2px solid var(--danger-color); border-radius: var(--border-radius);
+      padding: 1rem 1.25rem; margin-bottom: 1rem; color: #7f0000; font-size: 1.15rem; animation: fadeIn 0.3s ease;
+    }
+    .guard-alert .guard-alert-btns { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 0.75rem; }
+    body.dark-mode .guard-alert { background: linear-gradient(135deg, #2a0a0a, #3a1010); color: #fecaca; }
+    /* 让分析气泡里的危险等级更醒目 */
+    .guard-step { display: inline-block; font-weight: bold; padding: 0.1rem 0.6rem; border-radius: 0.5rem; font-size: 0.95rem; margin-bottom: 0.4rem; }
+
+    /* —— 转账冷静期 —— */
+    .cooldown-intro {
+      background: linear-gradient(135deg, #fff3e0, #ffe0b2); border-left: 6px solid var(--danger-color);
+      border-radius: var(--border-radius); padding: 1.25rem; margin-bottom: 1.5rem; font-size: 1.15rem; color: #5d4037; line-height: 1.7;
+    }
+    body.dark-mode .cooldown-intro { background: linear-gradient(135deg, #2a1500, #3a2000); color: #ffe0b2; }
+    .btn-cooldown-start {
+      display: block; width: 100%; background: var(--danger-color); color: #fff; border: none;
+      border-radius: var(--border-radius); padding: 1.5rem; font-size: 1.6rem; font-weight: bold; cursor: pointer;
+      box-shadow: var(--shadow-medium); transition: all var(--transition-speed);
+    }
+    .btn-cooldown-start:hover { background: #b71c1c; transform: translateY(-2px); }
+    .btn-cooldown-start:active { transform: scale(0.98); }
+    .cooldown-timer-wrap { text-align: center; margin-bottom: 1.5rem; }
+    .cooldown-ring {
+      width: 160px; height: 160px; margin: 0 auto 0.75rem; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 4rem; font-weight: bold; color: var(--danger-color);
+      background: #fff;
+      border: 10px solid var(--danger-color);
+      animation: coolPulse 1s ease-in-out infinite;
+    }
+    .cooldown-ring.done { color: var(--success-color); border-color: var(--success-color); animation: none; }
+    @keyframes coolPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+    .cooldown-timer-tip { font-size: 1.15rem; color: #5d4037; font-weight: bold; }
+    body.dark-mode .cooldown-ring { background: #1e293b; }
+    body.dark-mode .cooldown-timer-tip { color: #ffe0b2; }
+    .cooldown-quiz {
+      background: rgba(255,255,255,0.7); border: 1px solid #ffcc80; border-radius: var(--border-radius);
+      padding: 1.25rem; margin-bottom: 1.25rem;
+    }
+    body.dark-mode .cooldown-quiz { background: rgba(15,23,42,0.6); border-color: #5a3a00; }
+    .cool-check {
+      display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.75rem; margin-bottom: 0.5rem;
+      background: #fff; border: 1px solid #ffe0b2; border-radius: 0.75rem; font-size: 1.1rem; line-height: 1.6; cursor: pointer;
+      transition: all var(--transition-speed);
+    }
+    .cool-check:hover { border-color: var(--danger-color); }
+    .cool-check input { width: 1.5rem; height: 1.5rem; margin-top: 0.15rem; flex-shrink: 0; cursor: pointer; accent-color: var(--danger-color); }
+    body.dark-mode .cool-check { background: #0f172a; border-color: #334155; color: #e5e7eb; }
+
+    /* 回到顶部按钮 */
+    .back-to-top {
+      position: fixed;
+      right: 1.5rem;
+      bottom: 2rem;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: var(--primary-color);
+      color: white;
+      font-size: 1.5rem;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+      z-index: 9998;
+      display: none;
+      transition: all var(--transition-speed);
+    }
+    .back-to-top.show { display: flex; align-items: center; justify-content: center; }
+    .back-to-top:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(0,0,0,0.35); }
+
+    /* 紧急求助浮动按钮 */
+    .help-container {
+      position: fixed;
+      right: 1.5rem;
+      bottom: 7rem;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 12px;
+    }
+    .help-btn {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: #e60012;
+      color: #fff;
+      font-size: 15px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 16px rgba(230, 0, 18, 0.45);
+      cursor: pointer;
+      border: none;
+      animation: pulse-help 2s infinite;
+      transition: all var(--transition-speed);
+      letter-spacing: 2px;
+    }
+    .help-btn:hover { transform: scale(1.08); box-shadow: 0 6px 20px rgba(230, 0, 18, 0.6); }
+    @keyframes pulse-help {
+      0%, 100% { box-shadow: 0 4px 16px rgba(230, 0, 18, 0.45); }
+      50% { box-shadow: 0 4px 24px rgba(230, 0, 18, 0.75); }
+    }
+    .help-panel {
+      display: none;
+      width: 260px;
+      background: var(--white);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+    .help-panel.show { display: block; }
+    .option-btn {
+      width: 100%;
+      padding: 14px 0;
+      margin-bottom: 10px;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      color: #fff;
+      cursor: pointer;
+      font-weight: bold;
+      transition: opacity 0.2s;
+    }
+    .option-btn:hover { opacity: 0.85; }
+    .btn-110 { background: #ff4d4f; }
+    .btn-96110 { background: #fa8c16; }
+    .btn-family { background: #1890ff; }
+    .btn-edit-family {
+      margin-top: 6px;
+      padding: 12px 20px;
+      font-size: 1rem;
+      border-radius: 999px;
+      border: 2px solid #1890ff;
+      background: var(--white);
+      color: #1890ff;
+      cursor: pointer;
+      width: 100%;
+      font-weight: bold;
+      transition: all 0.2s;
+    }
+    .btn-edit-family:hover { background: #1890ff; color: #fff; }
+
+    /* 子女电话弹窗 */
+    .help-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 10001;
+      align-items: center;
+      justify-content: center;
+    }
+    .help-modal.show { display: flex; }
+    .help-modal-box {
+      width: 90%;
+      max-width: 360px;
+      background: var(--white);
+      border-radius: 16px;
+      padding: 24px;
+    }
+    .help-modal-box h3 { font-size: 1.3rem; margin-bottom: 1rem; color: var(--text-color); }
+    .help-modal-box input {
+      width: 100%;
+      padding: 12px;
+      font-size: 1.1rem;
+      margin: 12px 0;
+      border-radius: 8px;
+      border: 2px solid #ddd;
+      outline: none;
+    }
+    .help-modal-box input:focus { border-color: var(--primary-color); }
+    .help-modal-box .btn-save {
+      width: 100%;
+      padding: 12px;
+      font-size: 1.1rem;
+      background: #1890ff;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      margin-top: 8px;
+      cursor: pointer;
+    }
+    .help-modal-box .btn-cancel {
+      width: 100%;
+      padding: 10px;
+      font-size: 1rem;
+      background: #f1f1f1;
+      color: #666;
+      border: none;
+      border-radius: 10px;
+      margin-top: 6px;
+      cursor: pointer;
+    }
+
+    body.dark-mode .help-panel { background: #1e293b; }
+    body.dark-mode .help-modal-box { background: #1e293b; }
+    body.dark-mode .btn-edit-family { background: #1e293b; }
+    body.dark-mode .help-modal-box .btn-cancel { background: #334155; color: #aaa; }
+
+    @media (max-width: 480px) {
+      .help-btn { width: 62px; height: 62px; font-size: 13px; }
+      .help-container { right: 1rem; bottom: 6.5rem; }
+      .help-panel { width: 240px; }
+    }
+
+    /* 页脚 */
+    .footer {
+      text-align: center; padding: 1.5rem; background: rgba(255, 255, 255, 0.9);
+      border-radius: var(--border-radius); font-size: 1.125rem; color: #444; margin-top: 2rem;
+    }
+
+    .loading { animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
+
+    /* 响应式布局 */
+    @media (max-width: 768px) {
+      .container { padding: 0.5rem; }
+      .header { padding: 1.25rem 1rem; }
+      .header h1 { font-size: 1.5rem; }
+      .dark-mode-toggle { top: 0.4rem; right: 0.5rem; width: 36px; height: 36px; font-size: 1rem; }
+      .nav { flex-direction: column; align-items: stretch; gap: 0.5rem; }
+      .nav-btn { width: 100%; min-width: unset; padding: 0.8rem; }
+      .video-grid { grid-template-columns: 1fr; }
+      .video-search-box { flex-direction: column; }
+      .video-search-box input { width: 100%; }
+      .chat-wrap { height: 350px; }
+      .module { padding: 1rem; margin-bottom: 1rem; }
+      .game-box { padding: 0.75rem; }
+      .game-question { padding: 1rem; margin-bottom: 1rem; }
+      .game-btns { gap: 0.75rem; }
+      .game-btn { font-size: 1.1rem; padding: 0.875rem; }
+      .game-desc { font-size: 1.1rem; }
+      .game-stats { flex-direction: column; gap: 0.5rem; padding: 0.75rem; }
+      .say-box { max-width: 75%; font-size: 1rem; padding: 0.75rem 1rem; }
+      .input-line input { padding: 0.75rem 1rem; }
+      .input-line button.btn-success { padding: 0.75rem 1.25rem; }
+      .btn-voice { padding: 0 1rem; }
+      .history-content { width: 95%; height: 90vh; }
+    }
+
+    @media (max-width: 480px) {
+      html { font-size: 14px; }
+      html.large-font { font-size: 20px; }
+      .police-box { flex-direction: column; text-align: center; }
+      .say-box::before {
+        left: 50%; top: -0.625rem; transform: translateX(-50%) rotate(90deg);
+        border-left: 0.625rem solid transparent; border-right: 0.625rem solid transparent;
+        border-bottom: 0.625rem solid var(--white); border-top: 0;
+      }
+      .game-question h3 { font-size: 1.375rem; }
+      .game-desc { font-size: 1.125rem; }
+      .back-to-top { right: 1rem; bottom: 1.5rem; width: 42px; height: 42px; font-size: 1.25rem; }
+    }
+
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="police-box" onclick="showModule('chat-module', this)" tabindex="0" role="button" aria-label="点击进入AI反诈专家聊天">
+      <div class="police-icon" aria-hidden="true"></div>
+      <div class="say-box">有什么问题可以来问我哦</div>
+    </div>
+
+    <header class="header">
+      <button class="dark-mode-toggle" onclick="toggleDarkMode()" id="darkModeBtn" aria-label="切换深色模式" title="切换深色/浅色模式">🌙</button>
+      <h1>🛡️ 安享盾</h1>
+      <p>守护养老钱 · 远离诈骗坑 · 安享幸福晚年</p>
+    </header>
+
+    <!-- 每日一条反诈提醒（联网实时更新，失败自动用本地内容兜底） -->
+    <section class="daily-tip" id="dailyTip" aria-label="每日反诈提醒">
+      <div class="daily-tip-head">
+        <div class="daily-tip-headline">
+          <span class="daily-tip-date" id="dailyTipDate"></span>
+          <strong>📢 今日反诈提醒</strong>
+          <span class="daily-tip-badge" id="dailyTipBadge"></span>
+        </div>
+        <div class="daily-tip-actions">
+          <button type="button" class="tip-icon-btn" id="tipRefreshBtn" onclick="refreshDailyTip()" title="换一条最新提醒" aria-label="刷新提醒">🔄</button>
+          <button type="button" class="tip-icon-btn" id="tipToggleBtn" onclick="toggleDailyTip()" title="展开/收起" aria-label="展开或收起提醒">▲</button>
+        </div>
+      </div>
+      <div class="daily-tip-body" id="dailyTipBody">
+        <h3 class="daily-tip-title" id="dailyTipTitle">正在为您准备今日提醒……</h3>
+        <p class="daily-tip-text" id="dailyTipText"></p>
+        <div class="daily-tip-case" id="dailyTipCaseWrap" style="display:none;">
+          <span class="daily-tip-case-label" id="dailyTipType">真实案例</span>
+          <span id="dailyTipCase"></span>
+        </div>
+        <div style="text-align:right;margin-top:0.75rem;">
+          <button type="button" class="tip-more-btn" onclick="showModule('case-module')">查看更多真实案例 →</button>
+        </div>
+      </div>
+    </section>
+
+    <div class="font-group">
+      <button class="font-btn active" onclick="switchFont(0)" aria-label="切换到标准字体大小">标准字体</button>
+      <button class="font-btn" onclick="switchFont(1)" aria-label="切换到大字模式">大字模式</button>
+    </div>
+
+    <nav class="nav" aria-label="主要导航">
+      <button class="nav-btn active" onclick="showModule('video-module', this)" aria-label="查看反诈视频">🎬 反诈视频</button>
+      <button class="nav-btn" onclick="showModule('case-module', this)" aria-label="查看诈骗案例">📋 诈骗案例</button>
+      <button class="nav-btn" onclick="showModule('chat-module', this)" aria-label="与AI反诈专家聊天">🤖 AI反诈专家</button>
+      <button class="nav-btn" onclick="showModule('detect-module', this)" aria-label="AI诈骗检测">🔍 诈骗检测</button>
+      <button class="nav-btn" onclick="showModule('guard-module', this)" aria-label="对话式话术拆解">🧩 话术拆解</button>
+      <button class="nav-btn nav-btn-stop" onclick="showModule('cooldown-module', this)" aria-label="转账冷静期">🛑 转账冷静</button>
+      <button class="nav-btn" onclick="showModule('game-module', this); updateStatsDisplay();" aria-label="开始反诈大闯关游戏">🎮 反诈大闯关</button>
+    </nav>
+
+    <main>
+      <section class="module active" id="video-module" role="region" aria-label="反诈视频模块">
+        <h2>🎬 反诈科普视频</h2>
+        <div class="video-controls">
+          <div class="video-search-box">
+            <input type="text" id="videoSearch" placeholder="搜索反诈视频..." onkeyup="searchVideos(this.value)" aria-label="搜索反诈视频">
+            <button class="btn btn-primary" onclick="searchVideos()">搜索</button>
+            <button class="btn btn-secondary" onclick="clearSearch()">清除</button>
+            <button class="btn btn-success" onclick="fetchRealTimeVideos()" id="btnFetchVideos" style="background-color: var(--warning-color); color: #333;">✨ 获取最新热点视频</button>
+          </div>
+          <div class="video-categories">
+            <button class="category-btn active" onclick="filterVideos('all', this)">全部视频</button>
+            <button class="category-btn" onclick="filterVideos('telecom', this)">电信诈骗</button>
+            <button class="category-btn" onclick="filterVideos('finance', this)">金融理财</button>
+            <button class="category-btn" onclick="filterVideos('health', this)">保健品</button>
+            <button class="category-btn" onclick="filterVideos('new', this)">最新骗局</button>
+            <button class="category-btn" onclick="filterVideos('education', this)">防骗指南</button>
+          </div>
+        </div>
+        <div class="video-grid" id="videoGrid"></div>
+      </section>
+
+      <section class="module" id="case-module" role="region" aria-label="诈骗案例模块">
+        <h2>📋 真实诈骗案例（可朗读）</h2>
+        <article class="case-item">
+          <h3 class="case-title">案例1：保健品骗局</h3>
+          <div class="case-content">多位老人被免费体检、免费礼品诱导，购买天价"神药"，事后发现毫无效果，被骗金额巨大。诈骗特点：免费赠送吸引-制造健康恐慌-夸大疗效-高价销售。</div>
+          <div class="case-btns">
+            <button class="btn btn-primary" onclick="readThis(this, 0)" aria-label="朗读保健品骗局案例">🔊 点击朗读</button>
+            <a class="btn btn-video" href="https://b23.tv/7GNfvGG" target="_blank" rel="noopener" aria-label="观看保健品骗局相关视频">🎬 观看相关视频</a>
+          </div>
+        </article>
+        <article class="case-item">
+          <h3 class="case-title">案例2：冒充子女借钱</h3>
+          <div class="case-content">骗子盗取老人子女社交账号，伪装紧急情况要求转账，多位老人未核实直接汇款导致财产损失。关键：凡是紧急要钱，必须先电话核实。</div>
+          <div class="case-btns">
+            <button class="btn btn-primary" onclick="readThis(this, 1)" aria-label="朗读冒充子女借钱案例">🔊 点击朗读</button>
+            <a class="btn btn-video" href="https://b23.tv/Gb2ZLPy" target="_blank" rel="noopener" aria-label="观看冒充子女借钱相关视频">🎬 观看相关视频</a>
+          </div>
+        </article>
+        <article class="case-item">
+          <h3 class="case-title">案例3：养老高收益理财骗局</h3>
+          <div class="case-content">不法分子以"养老投资""高收益保本"为噱头吸引老人投资，短期后平台跑路，本金无法追回。切记：高收益=高风险，投资需谨慎。</div>
+          <div class="case-btns">
+            <button class="btn btn-primary" onclick="readThis(this, 2)" aria-label="朗读养老理财骗局案例">🔊 点击朗读</button>
+            <a class="btn btn-video" href="https://b23.tv/cWHXKrD" target="_blank" rel="noopener" aria-label="观看养老保险骗局相关视频">🎬 观看相关视频</a>
+          </div>
+        </article>
+        <article class="case-item">
+          <h3 class="case-title">案例4：冒充公检法诈骗</h3>
+          <div class="case-content">骗子冒充警察、检察官，声称老人涉嫌案件，恐吓转入"安全账户"，大量老人因恐慌被骗走积蓄。重要提醒：公检法不会电话办案，更无安全账户。</div>
+          <div class="case-btns">
+            <button class="btn btn-primary" onclick="readThis(this, 3)" aria-label="朗读冒充公检法诈骗案例">🔊 点击朗读</button>
+            <a class="btn btn-video" href="https://b23.tv/JbENpUc" target="_blank" rel="noopener" aria-label="观看冒充公检法骗局相关视频">🎬 观看相关视频</a>
+          </div>
+        </article>
+      </section>
+
+      <section class="module" id="chat-module" role="region" aria-label="AI反诈专家问答模块">
+        <h2>🤖 AI反诈专家（智能问答助手）</h2>
+        <div class="chat-wrap">
+          <div class="chat-box" id="chatBox" role="log" aria-live="polite">
+            <div class="msg bot">您好！我是安享盾反诈助手，我可以帮您解答各种防诈骗问题，比如：<br><br>1. 如何识别常见诈骗？<br>2. 遇到诈骗怎么办？<br>3. 如何保护个人信息？<br>4. 投资理财要注意什么？<br><br>有什么问题尽管问我！</div>
+          </div>
+          <div class="input-line">
+            <button class="btn-voice" id="voiceBtn" onclick="toggleVoiceInput()" aria-label="语音输入" title="点击开始语音输入">🎤</button>
+            <input type="text" id="userInput" placeholder="请输入您的问题……例如：如何识别诈骗电话？" aria-label="输入您的问题" onkeydown="if(event.key === 'Enter') sendMsg()">
+            <button class="btn btn-success" onclick="sendMsg()" aria-label="发送消息">发送</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="module" id="detect-module" role="region" aria-label="AI诈骗检测模块">
+        <h2>🔍 AI诈骗检测（智能识别）</h2>
+        <div class="detect-intro">
+          <p>📌 接到可疑电话、收到可疑短信、拿不准的传单截图？<br>把对方说的话或短信内容粘到下方，AI 当场帮您判断是不是骗子，并告诉您现在该怎么做！</p>
+        </div>
+        <div class="scene-row">
+          <span class="scene-label">先选一下您遇到的情况：</span>
+          <button type="button" class="scene-btn" id="sceneBtnSms" onclick="setDetectScene('sms', this)">📱 我收到一条短信</button>
+          <button type="button" class="scene-btn" id="sceneBtnCall" onclick="setDetectScene('call', this)">📞 我接到一个电话</button>
+          <button type="button" class="scene-btn" id="sceneBtnOther" onclick="setDetectScene('other', this)">🖼️ 其它（传单/截图）</button>
+        </div>
+        <div style="text-align:center; margin-bottom:1rem;">
+          <input type="file" id="ocrImageInput" accept="image/*" capture="environment"
+                 style="display:none;" onchange="handleImageUpload(event)">
+          <button class="btn btn-secondary" style="margin-right:0.5rem;"
+                  onclick="document.getElementById('ocrImageInput').setAttribute('capture','environment');document.getElementById('ocrImageInput').click()">
+            📷 拍照识别
+          </button>
+          <button class="btn btn-secondary"
+                  onclick="document.getElementById('ocrImageInput').removeAttribute('capture');document.getElementById('ocrImageInput').click()">
+            🖼️ 上传图片
+          </button>
+          <div id="ocrStatus" style="margin-top:0.5rem;color:#666;font-size:0.95rem;"></div>
+        </div>
+        <div class="detect-examples">
+          <span style="font-size:1rem;color:#555;font-weight:bold;">💡 点击试试示例：</span>
+          <button class="example-btn" onclick="fillExample(0)">可疑短信</button>
+          <button class="example-btn" onclick="fillExample(1)">冒充警察</button>
+          <button class="example-btn" onclick="fillExample(2)">中奖通知</button>
+          <button class="example-btn" onclick="fillExample(3)">投资邀请</button>
+        </div>
+        <textarea id="detectInput" placeholder="把短信内容、或对方在电话里说的话粘到这里，也可以直接手动输入……" aria-label="输入待检测内容" rows="6"></textarea>
+        <button class="btn btn-detect" onclick="detectFraud()" id="detectBtn">🔍 开始检测</button>
+        <div id="detectResult" class="detect-result" style="display:none;" aria-live="polite"></div>
+      </section>
+
+      <!-- 对话式话术拆解：把对方的话一句句发进来，AI 实时盯防多轮套路 -->
+      <section class="module" id="guard-module" role="region" aria-label="对话式话术拆解模块">
+        <h2>🧩 话术拆解（陪您一起识破套路）</h2>
+        <div class="detect-intro">
+          <p>📌 正在跟一个拿不准的人聊天、打电话？<br>把<strong>对方说的每一句话</strong>一句句发给我，我帮您盯着——他到底想干嘛、说到哪一步了、下一步会怎么骗、您现在该怎么应对。</p>
+        </div>
+        <div id="guardAlert" class="guard-alert" style="display:none;" aria-live="assertive"></div>
+        <div class="chat-wrap">
+          <div class="chat-box" id="guardBox" role="log" aria-live="polite">
+            <div class="msg bot">您好！把对方说的话发给我就行。比如他在电话里说了什么、微信上发了什么，<strong>一句一句发</strong>，我会一直跟着帮您分析。🛡️</div>
+          </div>
+          <div class="input-line">
+            <input type="text" id="guardInput" placeholder="把对方说的话输到这里……例如：他说我账户涉嫌洗钱" aria-label="输入对方说的话" onkeydown="if(event.key === 'Enter') guardSend()">
+            <button class="btn btn-success" onclick="guardSend()" aria-label="发送分析">分析</button>
+          </div>
+        </div>
+        <div class="guard-examples">
+          <span style="font-size:1rem;color:#555;font-weight:bold;">💡 试试常见开场白：</span>
+          <button class="example-btn" onclick="fillGuard(0)">自称公安说我涉案</button>
+          <button class="example-btn" onclick="fillGuard(1)">让我下载一个App</button>
+          <button class="example-btn" onclick="fillGuard(2)">说我中奖要交手续费</button>
+          <button class="example-btn" onclick="fillGuard(3)">冒充孩子要我转钱</button>
+        </div>
+        <div style="margin-top:1rem;text-align:center;">
+          <button class="btn btn-secondary" onclick="resetGuard()">🔄 这是新的一通对话（清空重来）</button>
+        </div>
+      </section>
+
+      <!-- 转账冷静期：用强制30秒+灵魂拷问，对冲骗子的"催你快" -->
+      <section class="module" id="cooldown-module" role="region" aria-label="转账冷静期模块">
+        <h2>🛑 转账冷静期（转账前先停一停）</h2>
+        <div class="cooldown-intro">
+          <p>💰 要<strong>转账、汇款、扫码付钱</strong>之前，先在这里停 30 秒。<br>骗子最大的本事就是<strong>催您快、不让您想</strong>。咱们偏要慢一拍——这一停，可能就保住了您的养老钱。</p>
+        </div>
+
+        <div id="cooldownStart">
+          <button class="btn-cooldown-start" onclick="startCooldown()">🛑 我正要转账，先冷静一下</button>
+        </div>
+
+        <div id="cooldownArea" style="display:none;">
+          <div class="cooldown-timer-wrap">
+            <div class="cooldown-ring" id="cooldownRing">
+              <span id="cooldownNum">30</span>
+            </div>
+            <p class="cooldown-timer-tip" id="cooldownTip">先深呼吸，一边看下面几个问题，一边想一想……</p>
+          </div>
+
+          <div class="cooldown-quiz">
+            <p style="font-weight:bold;font-size:1.2rem;margin-bottom:0.75rem;color:#bf360c;">请如实勾选 —— 下面这些情况，对方占了几条？</p>
+            <label class="cool-check"><input type="checkbox" class="cool-q" data-killer="1"> 对方一直<strong>催我快点</strong>，说"晚了就来不及/名额没了/账户要被冻结"</label>
+            <label class="cool-check"><input type="checkbox" class="cool-q" data-killer="1"> 对方让我<strong>别告诉家人</strong>，或让我对银行/柜员<strong>隐瞒真实用途</strong></label>
+            <label class="cool-check"><input type="checkbox" class="cool-q" data-killer="1"> 要我把钱转到<strong>"安全账户"</strong>，或转给<strong>陌生的个人/公司账户</strong></label>
+            <label class="cool-check"><input type="checkbox" class="cool-q"> 是因为<strong>中奖、退款、高回报投资、亲人出事、账户异常</strong>才要我转钱</label>
+            <label class="cool-check"><input type="checkbox" class="cool-q"> 我<strong>没法当面或视频</strong>确认对方到底是谁</label>
+            <label class="cool-check"><input type="checkbox" class="cool-q" data-killer="1"> 对方要我<strong>下载软件、开屏幕共享，或报手机验证码</strong></label>
+          </div>
+
+          <button class="btn btn-detect" id="cooldownCheckBtn" onclick="showCooldownResult()" disabled>⏳ 请先冷静 <span id="cooldownCountLeft">30</span> 秒……</button>
+          <div id="cooldownResult" class="detect-result" style="display:none;" aria-live="polite"></div>
+        </div>
+      </section>
+
+      <section class="module" id="game-module" role="region" aria-label="反诈大闯关游戏模块">
+        <h2>🎮 反诈大闯关</h2>
+        <div class="game-box">
+          <div class="game-stats">
+            <span id="dailyScoreDisplay">今日积分：0</span>
+            <span id="totalScoreDisplay">总积分：0</span>
+            <span id="playedTodayDisplay">今日已答：0/30</span>
+            <button class="btn btn-secondary" onclick="showHistoryModal()" style="padding: 0.5rem 1rem; font-size: 1rem; margin-left: auto;">📜 查看答题记录</button>
+          </div>
+          <div class="game-score" id="scoreShow" aria-live="polite">答题进度：0/5</div>
+          <div id="gameArea">
+            <div class="game-question">
+              <h3>欢迎参加反诈大闯关！</h3>
+              <div class="game-desc">
+                完成5道题测试您的防骗知识。<br>
+                💡 <strong>答对+10分，答错+5分</strong>（参与也有奖励哦！）<br>
+                每天最多可挑战30道题，快来挑战吧！
+              </div>
+              <div class="game-btns">
+                <button class="game-btn" onclick="startGame()" aria-label="开始挑战">开始挑战</button>
+                <button class="game-btn" onclick="generateDynamicQuestions()" id="btnGenerateQuestions" style="background: var(--info-color); color: var(--text-color);" aria-label="换一批新题开始挑战">✨ 换一批新题开始挑战</button>
+              </div>
+            </div>
+          </div>
+          <div id="gameFinish" class="game-end" style="display:none;">
+            <h2>🎉 本轮闯关结束！</h2>
+            <p id="finalScoreShow"></p>
+            <div style="display: flex; flex-direction: column; gap: 10px; max-width: 300px; margin: 0 auto;">
+              <button class="btn btn-secondary" onclick="generateDynamicQuestions()" id="btnGenerateQuestionsEnd" aria-label="换一批新题继续挑战">✨ 换一批新题继续挑战</button>
+              <button class="btn btn-primary" onclick="showHistoryModal()" aria-label="查看错题和记录">📜 查看我的答题记录</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer" role="contentinfo">
+      <p>全国反诈专线：96110 | 不轻信 · 不透露 · 不转账</p>
+      <p>本平台视频总数：<span id="videoCount">0</span> 个 | 点击视频卡片即可在B站观看</p>
+    </footer>
+  </div>
+
+  <div id="historyModal" class="history-modal" role="dialog" aria-modal="true" aria-labelledby="historyTitle">
+    <div class="history-content">
+      <div class="history-header">
+        <h3 id="historyTitle">📜 我的答题记录</h3>
+        <button class="btn-close" onclick="hideHistoryModal()" aria-label="关闭记录弹窗">✕</button>
+      </div>
+      <div class="history-body" id="historyBody"></div>
+    </div>
+  </div>
+
+  <button class="back-to-top" id="backTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="回到顶部" title="回到顶部">↑</button>
+
+  <!-- 紧急求助浮动按钮 -->
+  <div class="help-container">
+    <div class="help-panel" id="helpPanel">
+      <button class="option-btn btn-110" onclick="confirmCall('110')">📞 拨打 110</button>
+      <button class="option-btn btn-96110" onclick="confirmCall('96110')">🛡️ 拨打 96110</button>
+      <button class="option-btn btn-family" onclick="handleFamily()">👨‍👩‍👧 联系子女</button>
+      <button class="btn-edit-family" onclick="openEditModal()">✏️ 修改子女电话</button>
+    </div>
+    <button class="help-btn" onclick="toggleHelpPanel()" aria-label="紧急求助" title="紧急求助">紧急<br>求助</button>
+  </div>
+
+  <!-- 子女电话设置弹窗 -->
+  <div class="help-modal" id="familyModal">
+    <div class="help-modal-box">
+      <h3 id="modalTitle">设置子女电话</h3>
+      <input type="tel" id="familyPhone" placeholder="请输入子女手机号" aria-label="子女手机号">
+      <button class="btn-save" onclick="saveFamilyPhone()">保存并使用</button>
+      <button class="btn-cancel" onclick="closeFamilyModal()">取消</button>
+    </div>
+  </div>
+
+  <script>
+  // ==========================================
+  // 【安全的 LocalStorage 封装】
+  // ==========================================
+  const safeStorage = {
+    get: function(key, defaultVal) {
+      try { return localStorage.getItem(key) || defaultVal; }
+      catch (e) { return defaultVal; }
+    },
+    set: function(key, value) {
+      try { localStorage.setItem(key, value); }
+      catch (e) { console.warn("无法保存到本地存储:", e); }
+    },
+    getJSON: function(key, defaultVal) {
+      try { return JSON.parse(localStorage.getItem(key)) || defaultVal; }
+      catch (e) { return defaultVal; }
+    },
+    setJSON: function(key, value) {
+      try { localStorage.setItem(key, JSON.stringify(value)); }
+      catch (e) { console.warn("无法保存到本地存储:", e); }
+    }
+  };
+
+  // ==========================================
+  // 【全局配置】
+  // ==========================================
+  const API_BASE_URL = "http://47.92.71.113:3000";
+  const DEEPSEEK_KEY = "sk-13acf6c02a3c4e39a23847d4919b2b87";
+
+  // ==========================================
+  // 【深色模式】
+  // ==========================================
+  function toggleDarkMode() {
+    const body = document.body;
+    const btn = document.getElementById('darkModeBtn');
+    body.classList.toggle('dark-mode');
+    const isDark = body.classList.contains('dark-mode');
+    btn.textContent = isDark ? '☀️' : '🌙';
+    btn.setAttribute('aria-label', isDark ? '切换浅色模式' : '切换深色模式');
+    btn.setAttribute('title', isDark ? '切换浅色模式' : '切换深色模式');
+    safeStorage.set('darkMode', isDark ? 'on' : 'off');
+  }
+
+  (function initDarkMode() {
+    if (safeStorage.get('darkMode', 'off') === 'on') {
+      document.body.classList.add('dark-mode');
+      const btn = document.getElementById('darkModeBtn');
+      if (btn) { btn.textContent = '☀️'; btn.setAttribute('aria-label', '切换浅色模式'); btn.setAttribute('title', '切换浅色模式'); }
+    }
+  })();
+
+  // ==========================================
+  // 【回到顶部按钮】
+  // ==========================================
+  (function initBackToTop() {
+    const btn = document.getElementById('backTop');
+    if (!btn) return;
+    window.addEventListener('scroll', function() {
+      btn.classList.toggle('show', window.scrollY > 300);
+    });
+  })();
+
+  // ==========================================
+  // 【事件监听与初始化】
+  // ==========================================
+  document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        stopReading();
+        if (isRecording && rtcRecorder) toggleVoiceInput();
+        hideHistoryModal();
+        closeFamilyModal();
+        if (helpPanelOpen) toggleHelpPanel();
+      }
+      if (e.ctrlKey && e.key === 'f') {
+        e.preventDefault();
+        const searchInput = document.getElementById('videoSearch');
+        if (searchInput) searchInput.focus();
+      }
+    });
+
+    document.getElementById('historyModal').addEventListener('click', function(e) {
+      if (e.target === this) hideHistoryModal();
+    });
+
+    const familyModal = document.getElementById('familyModal');
+    if (familyModal) {
+      familyModal.addEventListener('click', function(e) {
+        if (e.target === this) closeFamilyModal();
+      });
+    }
+
+    initializeVideos();
+    updateStatsDisplay();
+    initDailyTip();
+
+    document.querySelectorAll('.module').forEach((module, index) => {
+      if (index !== 0) module.setAttribute('aria-hidden', 'true');
+    });
+    showModule('video-module');
+  });
+
+  document.addEventListener('visibilitychange', function() {
+    if (document.hidden) {
+      stopReading();
+      if (isRecording && rtcRecorder) toggleVoiceInput();
+    }
+  });
+
+  // ==========================================
+  // 【模块与字体切换】
+  // ==========================================
+  function switchFont(mode) {
+    if (mode === 0) document.documentElement.classList.remove('large-font');
+    else document.documentElement.classList.add('large-font');
+    document.querySelectorAll('.font-btn').forEach((btn, i) => {
+      btn.classList.toggle('active', i === mode);
+      btn.setAttribute('aria-pressed', i === mode);
+    });
+  }
+
+  function showModule(id, btnElement) {
+    document.querySelectorAll('.module').forEach(m => { m.classList.remove('active'); m.setAttribute('aria-hidden', 'true'); });
+    document.querySelectorAll('.nav-btn').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-current', 'false'); });
+
+    const currentModule = document.getElementById(id);
+    if (currentModule) {
+      currentModule.classList.add('active');
+      currentModule.setAttribute('aria-hidden', 'false');
+
+      if (btnElement && btnElement.classList.contains('nav-btn')) {
+        btnElement.classList.add('active');
+        btnElement.setAttribute('aria-current', 'page');
+      } else {
+        const navMap = { 'video-module': 0, 'case-module': 1, 'chat-module': 2, 'detect-module': 3, 'guard-module': 4, 'cooldown-module': 5, 'game-module': 6 };
+        const navBtns = document.querySelectorAll('.nav-btn');
+        if (navMap[id] !== undefined && navBtns[navMap[id]]) {
+          navBtns[navMap[id]].classList.add('active');
+          navBtns[navMap[id]].setAttribute('aria-current', 'page');
+        }
+      }
+
+      if (id === 'video-module' && allVideos.length === 0) initializeVideos();
+      if (id === 'game-module') updateStatsDisplay();
+      if (id === 'cooldown-module') resetCooldownView();
+    }
+  }
+
+  // ==========================================
+  // 【语音朗读（Web Speech API + 本地音频兜底）】
+  // ==========================================
+  let currentReadingBtn = null;
+  let currentReadingIndex = -1;
+  let currentAudio = null; // 本地音频播放器
+  let isSpeechSupported = 'speechSynthesis' in window;
+
+  function readThis(btn, index) {
+    const caseItem = btn.closest('.case-item');
+    if (!caseItem) return;
+
+    // 如果正在朗读同一个案例，停止
+    if (currentReadingIndex === index) {
+      stopReading();
+      return;
+    }
+
+    // 停止之前的朗读
+    stopReading();
+
+    currentReadingBtn = btn;
+    currentReadingIndex = index;
+
+    // 策略1：优先尝试 Web Speech API
+    if (isSpeechSupported) {
+      const title = caseItem.querySelector('.case-title').textContent;
+      const content = caseItem.querySelector('.case-content').textContent;
+      const text = `${title}。${content}`;
+
+      const speech = new SpeechSynthesisUtterance(text);
+      speech.lang = 'zh-CN';
+      speech.rate = 0.9;
+      speech.volume = 1;
+      speech.pitch = 1;
+
+      let hasStarted = false;
+
+      speech.onstart = function() {
+        hasStarted = true;
+        btn.classList.add('playing');
+        btn.innerHTML = '⏹️ 停止朗读';
+        btn.setAttribute('aria-label', '停止朗读');
+      };
+
+      speech.onend = function() { resetReadingButton(); };
+
+      speech.onerror = function(event) {
+        if (hasStarted) {
+          // 已经开始了但中途出错 → 静默重置
+          resetReadingButton();
+        } else {
+          // 从未成功开始（引擎被阉割）→ 降级到本地音频
+          console.warn('Web Speech 启动失败，降级到本地音频:', event.error);
+          resetReadingButton();
+          currentReadingIndex = index;
+          currentReadingBtn = btn;
+          playLocalAudio(btn, index);
+        }
+      };
+
+      window.speechSynthesis.speak(speech);
+      // 部分安卓 WebView 需要手动触发
+      if (window.speechSynthesis.paused) {
+        window.speechSynthesis.resume();
+      }
+    } else {
+      // 策略2：浏览器完全不支持 → 直接用本地音频
+      playLocalAudio(btn, index);
+    }
+  }
+
+  function playLocalAudio(btn, index) {
+    const audioPath = `audio/case${index + 1}.mp3`;
+    currentAudio = new Audio(audioPath);
+
+    currentAudio.play().then(function() {
+      btn.classList.add('playing');
+      btn.innerHTML = '⏹️ 停止朗读';
+      btn.setAttribute('aria-label', '停止朗读');
+    }).catch(function(err) {
+      console.error('本地音频播放失败:', err);
+      alert(`⚠️ 语音朗读不可用。\n请确保已打包音频文件：${audioPath}`);
+      resetReadingButton();
+    });
+
+    currentAudio.onended = function() { resetReadingButton(); };
+    currentAudio.onerror = function() {
+      console.error('音频加载错误:', audioPath);
+      alert(`⚠️ 音频文件加载失败：${audioPath}\n请在 HBuilder X 中确认音频文件已放入 audio 目录。`);
+      resetReadingButton();
+    };
+  }
+
+  function stopReading() {
+    if (window.speechSynthesis && (window.speechSynthesis.speaking || window.speechSynthesis.paused)) {
+      window.speechSynthesis.cancel();
+    }
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio.currentTime = 0;
+      currentAudio = null;
+    }
+    resetReadingButton();
+  }
+
+  function resetReadingButton() {
+    if (currentReadingBtn) {
+      currentReadingBtn.classList.remove('playing');
+      currentReadingBtn.innerHTML = '🔊 点击朗读';
+      currentReadingBtn.setAttribute('aria-label', '朗读案例内容');
+    }
+    currentReadingIndex = -1;
+    currentReadingBtn = null;
+    currentAudio = null;
+  }
+
+  // ==========================================
+  // 【积分系统 & 答题记录本地存储】
+  // ==========================================
+  let dailyScore = parseInt(safeStorage.get('antiFraudDailyScore', 0));
+  let totalScore = parseInt(safeStorage.get('antiFraudTotalScore', 0));
+  let questionsPlayedToday = parseInt(safeStorage.get('antiFraudQuestionsToday', 0));
+  let lastPlayDate = safeStorage.get('antiFraudLastPlayDate', '');
+
+  let questionHistory = safeStorage.getJSON('antiFraudQuestionHistory', []);
+
+  const todayDateStr = new Date().toLocaleDateString();
+  if (lastPlayDate !== todayDateStr) {
+    dailyScore = 0; questionsPlayedToday = 0; lastPlayDate = todayDateStr;
+    safeStorage.set('antiFraudDailyScore', dailyScore);
+    safeStorage.set('antiFraudQuestionsToday', questionsPlayedToday);
+    safeStorage.set('antiFraudLastPlayDate', lastPlayDate);
+  }
+
+  function updateStatsDisplay() {
+    const elDaily = document.getElementById('dailyScoreDisplay');
+    const elTotal = document.getElementById('totalScoreDisplay');
+    const elPlayed = document.getElementById('playedTodayDisplay');
+    if(elDaily) elDaily.textContent = `今日积分：${dailyScore}`;
+    if(elTotal) elTotal.textContent = `总积分：${totalScore}`;
+    if(elPlayed) elPlayed.textContent = `今日已答：${questionsPlayedToday}/30`;
+  }
+
+  // ==========================================
+  // 【视频库数据管理】
+  // ==========================================
+  let allVideos = [];
+  let filteredVideos = [];
+  let currentCategory = 'all';
+  let currentSearch = '';
+
+  /*
+   * ┌─────────────────────────────────────────────────────────────────────┐
+   * │ 视频封面 cover 字段填写说明（实现 YouTube 那样的真实画面封面）         │
+   * │                                                                       │
+   * │ 怎么 10 秒拿到一个视频的封面地址：                                     │
+   * │  1. 用电脑浏览器打开这个视频在 B 站的播放页面；                        │
+   * │  2. 在视频上方那张大封面图上「右键」→「复制图片地址」；                │
+   * │  3. 把复制到的地址（形如 http://i2.hdslb.com/bfs/archive/xxxx.jpg）   │
+   * │     粘贴到下面对应视频的 cover: "" 引号里即可。                        │
+   * │                                                                       │
+   * │ 注意：                                                                 │
+   * │  · 留空（cover:""）时会自动显示原来的彩色图标，不会报错；             │
+   * │  · 已在页面 <head> 加了 no-referrer，B 站防盗链会自动绕过，正常显示。 │
+   * └─────────────────────────────────────────────────────────────────────┘
+   */
+  let videoData = [
+    { id: 1, title: "老年人保健品诈骗揭秘", link: "https://b23.tv/7GNfvGG", category: "health", cover: "https://i0.hdslb.com/bfs/archive/42669f50f3b900adb51cc21d2cbfec8b285c6abe.jpg@672w_378h_1c_!web-search-common-cover.avif", description: "揭露保健品诈骗的常见手法，帮助老年人识别和防范" },
+    { id: 2, title: "冒充子女骗钱防范", link: "https://b23.tv/Gb2ZLPy", category: "telecom", cover: "https://i0.hdslb.com/bfs/archive/e2d6dec8f98843e2272680b4124e4ff4f24aa27f.jpg@672w_378h_1c_!web-search-common-cover.avif", description: "识别骗子冒充子女紧急要钱的诈骗套路" },
+    { id: 3, title: "养老保险骗局", link: "https://b23.tv/cWHXKrD", category: "finance", cover: "https://i0.hdslb.com/bfs/archive/ecf50f86522359d151e6c3f56051e69aa616a383.jpg@672w_378h_1c_!web-search-common-cover.avif", description: "揭秘以养老保险为名的诈骗手段" },
+    { id: 4, title: "冒充公检法骗局", link: "https://b23.tv/JbENpUc", category: "telecom", cover: "https://i0.hdslb.com/bfs/archive/04c8ee1fd0376e6ae1def592975df92b46ba7c3c.jpg@672w_378h_1c_!web-search-common-cover.avif", description: "公检法诈骗防范指南，记住：公检法不会电话办案" },
+    { id: 5, title: "金融理财诈骗防范", link: "https://b23.tv/yFKEC6r", category: "finance", cover: "https://i0.hdslb.com/bfs/archive/31922890c511c8efc957d28b262e80c8830b2139.jpg@672w_378h_1c_!web-search-common-cover.avif", description: "揭露以高收益为诱饵的金融理财诈骗" },
+    { id: 6, title: "养老理财骗局", link: "https://b23.tv/e0fp0Ni", category: "finance", cover: "https://i0.hdslb.com/bfs/archive/d7302f3e238b2b544e730692cd492d0d1d0c6bcf.jpg@672w_378h_1c_!web-search-common-cover.avif", description: "专门针对老年人的养老理财诈骗套路揭秘" },
+    { id: 7, title: "AI换脸诈骗识别", link: "https://b23.tv/nIlAXNZ", category: "new", cover: "https://i0.hdslb.com/bfs/archive/352af1b6ab8f8617507ad1f433d65836f31f6eb9.jpg@672w_378h_1c_!web-search-common-cover.avif", description: "最新AI换脸技术诈骗识别与防范方法" },
+    { id: 8, title: "数字货币诈骗揭秘", link: "https://b23.tv/u10ySqH", category: "new", cover: "https://i0.hdslb.com/bfs/archive/4df70bab24f5508cd7aacf974f5418e3dc60a104.jpg@672w_378h_1c_!web-search-common-cover.avif", description: "数字货币、虚拟币投资陷阱全揭秘" },
+    { id: 9, title: "如何设置手机防诈", link: "https://b23.tv/YPU0Htb", category: "education", cover: "https://i0.hdslb.com/bfs/archive/1d1865058439373246aa03ce3c6896263b483ffc.jpg@672w_378h_1c_!web-search-common-cover.avif", description: "手机防诈骗功能设置教程，一步步教您操作" },
+    { id: 10, title: "国家反诈中心APP使用", link: "https://b23.tv/b4erSVu", category: "education", cover: "https://i0.hdslb.com/bfs/archive/e0f1668bc1e3071c85b9a73e3fccfe3187504943.jpg@672w_378h_1c_!web-search-common-cover.avif", description: "官方反诈APP安装与使用完整教程" },
+    { id: 11, title: "保健品骗局深度揭露", link: "https://b23.tv/Mbrju7Z", category: "health", cover: "https://i0.hdslb.com/bfs/archive/9a3801ea184c3f719b3a8039f349b5668a6c5d60.jpg@672w_378h_1c_!web-search-common-cover.avif", description: "深度揭露保健品诈骗内幕，守护老年人健康与财产" }
+  ];
+
+  async function fetchRealTimeVideos() {
+    const btn = document.getElementById('btnFetchVideos');
+    const originalText = btn.innerHTML;
+    btn.disabled = true; btn.innerHTML = '⏳ 正在搜罗最新防骗视频...';
+
+    try {
+      const prompt = `你是一个防诈骗科普专家。请结合当下【最新】的社会热点（如新型AI声音合成、新型快递理赔诈骗、短视频点赞诈骗等），为老年人推荐4个最新的防诈骗科普话题。为了防止视频链接失效，你只需要提供搜索关键词，系统会自动生成搜索链接。必须严格按以下JSON数组格式回复，不要输出其他任何内容：[{"title": "视频标题（吸引老年人）","category": "必须从[health, telecom, finance, new, education]中选1个","description": "一句话简介（20字以内）","keyword": "用于在B站搜索该视频的精准关键词（如：AI声音 诈骗 揭秘）"}]`;
+
+      const res = await fetch("https://api.deepseek.com/chat/completions", {
+        method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${DEEPSEEK_KEY}` },
+        body: JSON.stringify({ model: "deepseek-chat", max_tokens: 1500, messages: [{ role: "system", content: prompt }] })
+      });
+      const data = await res.json();
+      const rawText = data.choices?.[0]?.message?.content || '';
+
+      const jsonMatch = rawText.match(/\[[\s\S]*\]/);
+      if (!jsonMatch) throw new Error("无法解析视频数据");
+      const newVideos = JSON.parse(jsonMatch[0]);
+
+      let addedCount = 0;
+      newVideos.forEach(v => {
+        if(v.title && v.keyword) {
+          allVideos.unshift({
+            id: allVideos.length + 1, title: "🔥 " + v.title,
+            link: "https://search.bilibili.com/all?keyword=" + encodeURIComponent(v.keyword),
+            category: v.category || 'new', cover: v.cover || '', description: v.description
+          });
+          addedCount++;
+        }
+      });
+
+      if(addedCount > 0) {
+        alert(`🎉 成功获取 ${addedCount} 个最新热点防诈视频！已添加到列表最前方。`);
+        document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+        const firstCatBtn = document.querySelector('.category-btn');
+        if (firstCatBtn) firstCatBtn.classList.add('active');
+        currentCategory = 'all'; currentSearch = ''; document.getElementById('videoSearch').value = '';
+        filterAndRender();
+      } else { throw new Error("数据格式不完整"); }
+    } catch(err) {
+      console.error(err);
+      alert("⚠️ 获取最新视频失败，可能网络开小差了，请稍后再试。");
+    } finally {
+      btn.disabled = false; btn.innerHTML = originalText;
+    }
+  }
+
+  function getRecommendedVideoByCategory(categoryStr) {
+    const matches = allVideos.filter(v => v.category === categoryStr);
+    if (matches.length > 0) return matches[Math.floor(Math.random() * matches.length)];
+    return allVideos.find(v => v.category === 'education') || allVideos[0];
+  }
+
+  function initializeVideos() { allVideos = [...videoData]; filteredVideos = [...allVideos]; renderVideos(); updateVideoStats(); }
+
+  function renderVideos() {
+    const videoGrid = document.getElementById('videoGrid');
+    if (!videoGrid) return;
+
+    if (filteredVideos.length === 0) {
+      videoGrid.innerHTML = `<div class="no-videos"><div style="font-size: 3rem; margin-bottom: 1rem;">🔍</div><p>没有找到相关视频</p><button class="btn btn-primary" onclick="clearSearch()" style="margin-top: 1rem;">查看所有视频</button></div>`;
+      return;
+    }
+
+    const catIcons = { 'health': '💊', 'telecom': '📞', 'finance': '💰', 'new': '🆕', 'education': '📱' };
+    const catColors = { 'health': 'linear-gradient(135deg,#fff0f0,#ffcccc)', 'telecom': 'linear-gradient(135deg,#f0f4ff,#c7d7ff)', 'finance': 'linear-gradient(135deg,#fffaf0,#ffe4a0)', 'new': 'linear-gradient(135deg,#f0fff4,#b2f5c8)', 'education': 'linear-gradient(135deg,#f5f0ff,#d9c2ff)' };
+
+    // 生成缩略图：有真实封面图就显示画面（YouTube风格），加载失败/无封面则降级为图标
+    function buildThumbnail(video) {
+      const grad = catColors[video.category] || 'linear-gradient(135deg,#e3f2fd,#0d6efd)';
+      const icon = catIcons[video.category] || '🎬';
+      // 始终存在的降级占位（图标+渐变），封面成功加载后会被隐藏
+      const fallback = `<div class="thumb-fallback" style="background:${grad};"><div class="fallback-icon">${icon}</div></div>`;
+      // 有封面：渲染真实画面。referrerpolicy=no-referrer 绕过B站防盗链；
+      // onload 隐藏占位；onerror 移除失败的图片，露出占位，绝不会出现破图
+      const coverImg = video.cover
+        ? `<img class="video-cover" src="${video.cover}" alt="${video.title}" loading="lazy" decoding="async" referrerpolicy="no-referrer" onload="var f=this.parentNode.querySelector('.thumb-fallback'); if(f) f.style.display='none';" onerror="this.remove();">`
+        : '';
+      return `${fallback}${coverImg}<div class="video-play-btn">▶</div><span class="video-source-badge">▶ B站</span>`;
+    }
+
+    videoGrid.innerHTML = filteredVideos.map(video => `
+      <div class="video-card" data-category="${video.category}">
+        <a href="${video.link}" target="_blank" rel="noopener" style="text-decoration:none;display:block;">
+          <div class="video-thumbnail">
+            ${buildThumbnail(video)}
+          </div>
+        </a>
+        <div class="video-info">
+          <h3 class="video-title">${video.title}</h3>
+          <p style="color:#666;font-size:0.9rem;margin-bottom:0.75rem;">${video.description}</p>
+          <div class="video-meta">
+            <span class="video-category">${getCategoryName(video.category)}</span>
+            <a href="${video.link}" target="_blank" rel="noopener" style="background:var(--primary-color);color:#fff;padding:0.3rem 0.9rem;border-radius:1rem;font-size:0.85rem;text-decoration:none;font-weight:bold;">🎬 去B站观看</a>
+          </div>
+        </div>
+      </div>
+    `).join('');
+    document.getElementById('videoCount').textContent = filteredVideos.length;
+  }
+
+  function getCategoryName(category) {
+    const categories = { 'all': '全部', 'telecom': '电信诈骗', 'finance': '金融理财', 'health': '保健品', 'new': '最新骗局', 'education': '防骗指南' };
+    return categories[category] || category;
+  }
+
+  function filterVideos(category, btnElement) {
+    currentCategory = category;
+    if(btnElement) {
+      document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+      btnElement.classList.add('active');
+    }
+    filterAndRender();
+  }
+
+  function searchVideos(searchTerm = null) {
+    if (searchTerm !== null) currentSearch = searchTerm.toLowerCase();
+    else currentSearch = document.getElementById('videoSearch').value.toLowerCase();
+    filterAndRender();
+  }
+
+  function clearSearch() { document.getElementById('videoSearch').value = ''; currentSearch = ''; filterAndRender(); }
+
+  function filterAndRender() {
+    filteredVideos = allVideos.filter(video => {
+      if (currentCategory !== 'all' && video.category !== currentCategory) return false;
+      if (currentSearch && !((video.title.toLowerCase() + ' ' + video.description.toLowerCase()).includes(currentSearch))) return false;
+      return true;
+    });
+    renderVideos();
+  }
+
+  function updateVideoStats() { document.getElementById('videoCount').textContent = allVideos.length; }
+
+  // ==========================================
+  // 【AI 语音输入（含 Android 原生权限）】
+  // ==========================================
+  let rtcRecorder;
+  let isRecording = false;
+
+  async function toggleVoiceInput() {
+    const voiceBtn = document.getElementById('voiceBtn');
+    const input = document.getElementById('userInput');
+
+    if (!isRecording) {
+      try {
+        if (window.plus && plus.os.name === 'Android') {
+          await new Promise((resolve, reject) => {
+            plus.android.requestPermissions(['android.permission.RECORD_AUDIO'], function(e) {
+              if (e.granted.length > 0) resolve();
+              else reject(new Error("用户拒绝了麦克风权限"));
+            }, function(e) { reject(new Error("请求麦克风权限失败")); });
+          });
+        }
+
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        rtcRecorder = RecordRTC(stream, { type: 'audio', mimeType: 'audio/wav', recorderType: RecordRTC.StereoAudioRecorder, desiredSampRate: 16000, numberOfAudioChannels: 1 });
+
+        rtcRecorder.startRecording();
+        rtcRecorder.stream = stream;
+        isRecording = true;
+
+        voiceBtn.classList.add('recording');
+        voiceBtn.textContent = '⏹️';
+        voiceBtn.title = '点击停止录音';
+        voiceBtn.setAttribute('aria-label', '停止语音输入');
+        input.placeholder = '正在聆听，请说话...';
+      } catch (err) {
+        console.error("麦克风权限错误:", err);
+        alert("必须允许录音权限才能使用语音输入哦！请在手机设置中开启麦克风权限。");
+      }
+    } else {
+      isRecording = false;
+      voiceBtn.classList.remove('recording');
+      voiceBtn.textContent = '🎤';
+      voiceBtn.title = '点击开始语音输入';
+      voiceBtn.setAttribute('aria-label', '语音输入');
+      input.placeholder = 'AI正在解析语音，请稍候...';
+      input.disabled = true;
+
+      rtcRecorder.stopRecording(async function() {
+        let audioBlob = rtcRecorder.getBlob();
+        rtcRecorder.stream.getTracks().forEach(track => track.stop());
+        await sendAudioToAPI(audioBlob);
+      });
+    }
+  }
+
+  async function sendAudioToAPI(audioBlob) {
+    const input = document.getElementById('userInput');
+    const formData = new FormData();
+    formData.append('audio', audioBlob, 'record.wav');
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/recognize`, { method: 'POST', body: formData });
+      const data = await response.json();
+
+      if (data.success) {
+        let finalText = (data.text || "").trim();
+        let cleanTextForCheck = finalText.replace(/[。，！？]/g, '');
+        const blackList = ["我想知道", "嗯", "喂", "啊", "你好", "呃", "哦", "嗯嗯"];
+        if (blackList.includes(cleanTextForCheck)) finalText = "";
+
+        if (finalText) {
+          input.value = finalText.replace(/[。，！？]/g, '');
+          sendMsg();
+        } else {
+          alert("🤖 AI没太听清，或者只录到了环境音，请靠近麦克风大点声再说一次哦！");
+        }
+      } else { alert("识别失败：" + (data.error || "未知错误")); }
+    } catch (error) {
+      console.error("后端连接失败:", error);
+      alert("无法连接到识别服务，请确保云服务器已开启并放行 3000 端口！");
+    } finally {
+      input.disabled = false;
+      input.placeholder = '请输入您的问题……例如：如何识别诈骗电话？';
+    }
+  }
+
+  // ==========================================
+  // 【AI 聊天与知识库降级兜底】
+  // ==========================================
+  const aiResponses = {
+    "诈骗类型": ["1. 电话诈骗：假冒公检法等", "2. 网络诈骗：虚假投资等", "3. 保健品诈骗：夸大疗效等", "4. 养老诈骗：以房养老等", "5. 情感诈骗：杀猪盘等"],
+    "防骗技巧": ["1. 不轻信", "2. 不透露", "3. 不转账", "4. 多核实", "5. 及时报警"],
+    "求助渠道": ["1. 全国反诈专线：96110", "2. 报警电话：110", "3. 银行客服电话：及时联系冻结账户", "4. 社区警务室：寻求社区民警帮助", "5. 子女亲友：及时告知家人"]
+  };
+
+  function getAIAnswer(question) {
+    const lowerQ = question.toLowerCase();
+    if (lowerQ.includes("诈骗") && lowerQ.includes("类型")) return "常见的诈骗类型有：\n\n" + aiResponses["诈骗类型"].join("\n");
+    if (lowerQ.includes("防骗") || lowerQ.includes("防范")) return "防骗技巧要牢记：\n\n" + aiResponses["防骗技巧"].join("\n");
+    if (lowerQ.includes("电话") || lowerQ.includes("陌生")) return "识别诈骗电话的方法：\n\n1. 警惕陌生号码\n2. 不接听+开头的国际来电\n3. 自称官方机构的要回拨核实";
+    if (lowerQ.includes("理财") || lowerQ.includes("投资")) return "投资理财防骗提醒：\n\n1. 不轻信'保本高收益'\n2. 选择正规银行\n3. 不贪小便宜";
+    if (lowerQ.includes("报警") || lowerQ.includes("求助")) return "求助渠道：\n\n" + aiResponses["求助渠道"].join("\n");
+    return "保护好自己的钱袋子最重要。有任何疑问都可以先和家人商量，或者拨打96110咨询。记住：不轻信、不透露、不转账！";
+  }
+
+  let chatHistory = [];
+  function addMsg(text, isUser) {
+    const box = document.getElementById('chatBox');
+    const msg = document.createElement('div');
+    msg.className = isUser ? 'msg user' : 'msg bot';
+    msg.style.whiteSpace = 'pre-wrap';
+    msg.textContent = text;
+    box.appendChild(msg);
+    box.scrollTop = box.scrollHeight;
+  }
+
+  async function sendMsg() {
+    const input = document.getElementById('userInput');
+    const sendBtn = document.querySelector('#chat-module .btn-success');
+    const text = input.value.trim();
+    if (!text) { alert("请输入问题！"); input.focus(); return; }
+
+    addMsg(text, true);
+    input.value = ''; input.disabled = true; if (sendBtn) sendBtn.disabled = true;
+    chatHistory.push({ role: "user", content: text });
+
+    const thinkingEl = document.createElement('div');
+    thinkingEl.className = 'msg bot loading';
+    thinkingEl.textContent = '🤖 AI正在思考中……';
+    thinkingEl.id = 'thinking-msg';
+    document.getElementById('chatBox').appendChild(thinkingEl);
+    document.getElementById('chatBox').scrollTop = document.getElementById('chatBox').scrollHeight;
+
+    try {
+      const systemPrompt = `你是"安享盾"防骗管家的AI反诈专家助手。用亲切、口语化的中文回答。用数字列点，只回答防诈问题，不相关就婉拒。`;
+      const res = await fetch("https://api.deepseek.com/chat/completions", {
+        method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${DEEPSEEK_KEY}` },
+        body: JSON.stringify({ model: "deepseek-chat", max_tokens: 1000, messages: [{ role: "system", content: systemPrompt }, ...chatHistory] })
+      });
+      const data = await res.json();
+      const reply = data.choices?.[0]?.message?.content || getAIAnswer(text);
+
+      document.getElementById('thinking-msg')?.remove();
+      addMsg(reply, false);
+      chatHistory.push({ role: "assistant", content: reply });
+    } catch (err) {
+      document.getElementById('thinking-msg')?.remove();
+      const fallback = getAIAnswer(text);
+      addMsg(fallback, false);
+      chatHistory.push({ role: "assistant", content: fallback });
+    }
+    input.disabled = false; if (sendBtn) sendBtn.disabled = false; input.focus();
+  }
+
+  // ==========================================
+  // 【诈骗检测逻辑】
+  // ==========================================
+  // ==========================================
+  // 【图片上传识别（Tesseract.js - 带超时处理）】
+  // ==========================================
+  let tesseractLoaded = false;
+  let ocrAbortController = null;
+
+  function loadTesseract() {
+    return new Promise(function(resolve, reject) {
+      if (window.Tesseract) { tesseractLoaded = true; resolve(); return; }
+      var script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+      script.onload = function() { tesseractLoaded = true; resolve(); };
+      script.onerror = function() { reject(new Error('引擎下载失败，请检查网络后重试')); };
+      document.head.appendChild(script);
+    });
+  }
+
+  async function handleImageUpload(event) {
+    var file = event.target.files[0];
+    if (!file) return;
+
+    var statusEl = document.getElementById('ocrStatus');
+    var detectInput = document.getElementById('detectInput');
+    var resultDiv = document.getElementById('detectResult');
+    var fileInputEl = document.getElementById('ocrImageInput');
+
+    if (!file.type.startsWith('image/')) {
+      statusEl.textContent = '⚠️ 请选择图片文件';
+      statusEl.style.color = '#d32f2f';
+      if (fileInputEl) fileInputEl.value = '';
+      return;
+    }
+
+    // 重置
+    resultDiv.style.display = 'none';
+    detectInput.value = '';
+
+    try {
+      // 第1步：加载 Tesseract.js 库（约2MB，首次）
+      if (!tesseractLoaded) {
+        statusEl.textContent = '⏳ 正在下载识别引擎（约2MB），请稍候……';
+        statusEl.style.color = '#666';
+        await Promise.race([
+          loadTesseract(),
+          new Promise(function(_, reject) { setTimeout(function() { reject(new Error('引擎下载超时')); }, 20000); })
+        ]);
+      }
+
+      // 第2步：读取图片
+      statusEl.textContent = '⏳ 正在读取图片……';
+      statusEl.style.color = '#666';
+      var imageUrl = await new Promise(function(resolve, reject) {
+        var reader = new FileReader();
+        reader.onload = function() { resolve(reader.result); };
+        reader.onerror = function() { reject(new Error('读取图片失败')); };
+        reader.readAsDataURL(file);
+      });
+
+      // 第3步：创建识别器
+      // 优先从后端服务器加载语言包（HTTP 协议在 WebView 中最可靠）
+      statusEl.textContent = '⏳ 正在加载中文语言包……';
+      statusEl.style.color = '#666';
+
+      var worker;
+      // 先尝试本地：如果后端已部署语言包文件就用它
+      try {
+        worker = await Promise.race([
+          Tesseract.createWorker('chi_sim', 1, { langPath: API_BASE_URL + '/tessdata' }),
+          new Promise(function(_, reject) { setTimeout(function() { reject(new Error('后端超时')); }, 20000); })
+        ]);
+      } catch (e) {
+        // 后端没有 → 降级到 CDN 下载
+        statusEl.textContent = '⏳ 正在从CDN下载语言包（约10MB），首次约需30秒……';
+        statusEl.style.color = '#666';
+        worker = await Promise.race([
+          Tesseract.createWorker('chi_sim'),
+          new Promise(function(_, reject) { setTimeout(function() { reject(new Error('CDN下载超时，请在WiFi环境下重试')); }, 45000); })
+        ]);
+      }
+
+      // 第4步：识别文字
+      statusEl.textContent = '⏳ 正在识别图片文字……';
+      statusEl.style.color = '#666';
+      var result = await Promise.race([
+        worker.recognize(imageUrl),
+        new Promise(function(_, reject) { setTimeout(function() { reject(new Error('识别超时')); }, 30000); })
+      ]);
+      await worker.terminate();
+
+      var cleaned = result.data.text.replace(/\s+/g, '').trim();
+
+      if (!cleaned || cleaned.length < 2) {
+        detectInput.value = '';
+        statusEl.textContent = 'ℹ️ 图片中未识别到明显文字，请手动输入文字后点击「开始检测」';
+        statusEl.style.color = '#888';
+      } else {
+        detectInput.value = cleaned;
+        statusEl.textContent = '✅ 文字已提取到上方输入框，请核对后点击「🔍 开始检测」';
+        statusEl.style.color = '#198754';
+      }
+    } catch (err) {
+      console.error('OCR失败:', err);
+      statusEl.textContent = '❌ ' + (err.message || '识别失败，请手动输入文字后点击「开始检测」');
+      statusEl.style.color = '#d32f2f';
+    } finally {
+      if (fileInputEl) fileInputEl.value = '';
+    }
+  }
+
+  const detectExamples = [
+    "【农业银行】您的账户存在异常操作，为保障资金安全，请立即点击链接核实身份：http://agbank-verify.xyz/login",
+    "我是市公安局刑侦大队王警官，您的身份证涉嫌一起洗钱案件，需要配合调查，请将名下存款转入我们的安全账户。",
+    "恭喜您！您的手机号码已被抽中为特等奖，请加微信领奖，需缴纳88元手续费。",
+    "王阿姨您好，我是您儿子的朋友小李，他现在在医院手术，急需转账5万元手术费，稍后还您。"
+  ];
+
+  function fillExample(idx) {
+    document.getElementById('detectInput').value = detectExamples[idx];
+    document.getElementById('detectResult').style.display = 'none';
+  }
+
+  // 当前检测场景：'sms' 短信 / 'call' 来电 / 'other' 其它，默认 other
+  let detectScene = 'other';
+  function setDetectScene(scene, btnEl) {
+    detectScene = scene;
+    document.querySelectorAll('.scene-btn').forEach(b => b.classList.remove('active'));
+    if (btnEl) btnEl.classList.add('active');
+    const input = document.getElementById('detectInput');
+    if (scene === 'sms') input.placeholder = '请把收到的短信内容，原样粘贴或输入到这里……';
+    else if (scene === 'call') input.placeholder = '请把对方在电话里说的话，大致输入到这里（比如"自称社保局，说我医保卡被冻结"）……';
+    else input.placeholder = '把可疑的文字内容粘到这里，也可以用上方拍照/上传识别……';
+    input.focus();
+  }
+
+  // 组织一条给子女的求助话术（转发短信 / 复制都用它）
+  function buildFamilyMessage() {
+    const d = window.__lastDetect || {};
+    const sceneText = d.scene === 'call' ? '接到一个电话' : d.scene === 'sms' ? '收到一条短信' : '遇到一条拿不准的信息';
+    let body = `【安享盾】我${sceneText}，内容是："${(d.content || '').slice(0, 300)}"。`;
+    if (d.risk) body += `安享盾App判断为「${d.risk}风险」。`;
+    body += `你帮我看看这是不是骗子？我先不回复、不转账。`;
+    return body;
+  }
+
+  // 一键转发给子女（打开短信App，自动填好收件人和内容）
+  function forwardToFamily() {
+    forwardMessageToFamily(buildFamilyMessage());
+  }
+
+  // 通用：把任意一段话转发给已设置的子女电话（检测、冷静期、话术拆解共用）
+  function forwardMessageToFamily(body) {
+    const phone = decrypt(safeStorage.get('familyPhone', ''));
+    if (!phone) {
+      if (confirm('您还没有设置子女的电话哦。\n现在去设置好吗？设置一次以后就能一键转发啦。')) openSetModal();
+      return;
+    }
+    window.location.href = `sms:${phone}?body=${encodeURIComponent(body)}`;
+  }
+
+  // 直接拨打子女电话（检测页专用，不影响底部求助面板）
+  function callFamilyFromDetect() {
+    const phone = decrypt(safeStorage.get('familyPhone', ''));
+    if (!phone) {
+      if (confirm('您还没有设置子女的电话哦。现在去设置好吗？')) openSetModal();
+      return;
+    }
+    if (confirm(`确定要拨打子女电话吗？\n${phone}`)) {
+      lastCallTime = Date.now();
+      window.location.href = `tel:${phone}`;
+    }
+  }
+
+  // 复制求助话术（万一短信没自动带上内容，可手动粘到微信/短信里）
+  function copyDetectContent() {
+    const body = buildFamilyMessage();
+    const done = () => alert('已复制！打开微信或短信，粘贴发给孩子就行。');
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(body).then(done).catch(() => fallbackCopy(body, done));
+    } else { fallbackCopy(body, done); }
+  }
+  function fallbackCopy(text, cb) {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); cb && cb(); } catch (e) { alert('复制失败，请手动长按选择文字。'); }
+    document.body.removeChild(ta);
+  }
+
+  // 检测结果下方的"转发给子女"求助框
+  function buildForwardBox() {
+    return `<div class="forward-box">
+      <p class="forward-tip">🤔 还是拿不准？让孩子帮您把把关，最稳妥！</p>
+      <div class="forward-btns">
+        <button class="btn-forward" onclick="forwardToFamily()">📨 转发给子女确认</button>
+        <button class="btn-call-family" onclick="callFamilyFromDetect()">📞 直接打给子女</button>
+        <button class="btn-copy-content" onclick="copyDetectContent()">📋 复制这段话</button>
+      </div>
+    </div>`;
+  }
+
+  // ==========================================
+  // 【每日一条反诈提醒（联网实时更新 + 本地兜底）】
+  // ==========================================
+  // 本地内置提醒库：断网或接口异常时按"当天日期"轮换，保证永远有内容
+  const localDailyTips = [
+    { title: "陌生链接不要点", tip: "短信里带链接的，十有八九是骗子，千万别点开。", case: "李阿姨收到'快递理赔'短信，点链接填了银行卡，卡里3万元被转走。", type: "钓鱼短信" },
+    { title: "公检法不会电话办案", tip: "自称警察、法院让你转账到'安全账户'，全是假的，立刻挂断。", case: "王大爷接到'公安'电话说他涉嫌洗钱，被吓得转了8万'保证金'。", type: "冒充公检法" },
+    { title: "转账前先打电话", tip: "孩子在微信上急着要钱，先打电话听听是不是本人声音。", case: "张奶奶被冒充孙子的骗子骗走2万'住院费'，孙子根本没出事。", type: "冒充亲人" },
+    { title: "高息理财是陷阱", tip: "保本高回报、月月返利，都是骗本金的套路，别信。", case: "刘叔投了'养老项目'，前两月真返利，第三月公司就跑路了。", type: "虚假投资" },
+    { title: "免费的最贵", tip: "免费领鸡蛋、免费旅游、免费体检，背后多半是卖高价保健品。", case: "社区'免费体检'后，赵阿姨被忽悠买了2万元没用的'特效药'。", type: "保健品诈骗" },
+    { title: "AI能模仿声音和脸", tip: "视频里是孩子的脸和声音也可能是假的，要多方核实。", case: "用AI换脸假冒老板，财务被'视频通话'骗着转出十几万。", type: "AI换脸" },
+    { title: "不开屏幕共享", tip: "任何人让你下载软件、开屏幕共享，都是想偷看你的密码。", case: "陈阿姨按'客服'要求开了屏幕共享，验证码被看走，钱被转空。", type: "屏幕共享" },
+    { title: "刷单返利全是坑", tip: "动动手指就能赚钱？小额返利是诱饵，大额一充就没。", case: "周阿姨刷单先赚了几十块，越投越多，最后5万块再也拿不回。", type: "刷单返利" },
+    { title: "中奖要交钱就是骗", tip: "凡是领奖前要你先交税、交手续费的，一律是诈骗。", case: "孙大爷收到'中奖手机'通知，交了800元'税费'，奖品没影了。", type: "虚假中奖" },
+    { title: "96110是反诈专线", tip: "拿不准就打96110，或者先问问家里的孩子，别自己拿主意。", case: "多亏接了96110预警电话，吴阿姨才在转账前及时收手。", type: "反诈知识" }
+  ];
+
+  function tipTodayKey() { return new Date().toLocaleDateString(); }
+  function tipDayOfYear() {
+    const now = new Date();
+    return Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 86400000);
+  }
+  function getLocalDailyTip() { return localDailyTips[tipDayOfYear() % localDailyTips.length]; }
+
+  function renderDailyTip(d, isLive) {
+    if (!d) return;
+    document.getElementById('dailyTipDate').textContent = tipTodayKey();
+    document.getElementById('dailyTipTitle').textContent = d.title || '今日提醒';
+    document.getElementById('dailyTipText').textContent = d.tip || '';
+    const badge = document.getElementById('dailyTipBadge');
+    badge.textContent = isLive ? '🟢 实时更新' : '📚 防骗锦囊';
+    badge.className = 'daily-tip-badge ' + (isLive ? 'badge-live' : 'badge-local');
+    const caseWrap = document.getElementById('dailyTipCaseWrap');
+    if (d.case) {
+      caseWrap.style.display = 'block';
+      document.getElementById('dailyTipType').textContent = (d.type || '真实案例');
+      document.getElementById('dailyTipCase').textContent = d.case;
+    } else {
+      caseWrap.style.display = 'none';
+    }
+  }
+
+  // 调用 AI 拉取一条结合最新热点的提醒
+  async function fetchDailyTip() {
+    const sysPrompt = `你是反诈科普专家。请结合当下【最新】的诈骗热点（如AI拟声拟脸、刷单返利、虚假投资、冒充客服/快递理赔、养老诈骗等），生成一条面向中国老年人的"今日反诈提醒"。语气亲切口语化、好记。必须严格只返回如下JSON，不要任何多余文字：{"title":"提醒标题(10字内)","tip":"一句话提醒(30字内，直接说要记住什么)","case":"一个简短真实风格的案例(60字内，讲清骗子怎么骗的)","type":"骗局类型(6字内)"}`;
+    const res = await fetch("https://api.deepseek.com/chat/completions", {
+      method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${DEEPSEEK_KEY}` },
+      body: JSON.stringify({ model: "deepseek-chat", max_tokens: 500, messages: [{ role: "system", content: sysPrompt }, { role: "user", content: "请生成今天的反诈提醒。" }] })
+    });
+    const data = await res.json();
+    const raw = data.choices?.[0]?.message?.content || '';
+    const m = raw.match(/\{[\s\S]*\}/);
+    if (!m) throw new Error('无法解析');
+    const obj = JSON.parse(m[0]);
+    if (!obj.title || !obj.tip) throw new Error('内容不完整');
+    return obj;
+  }
+
+  async function initDailyTip() {
+    // 恢复折叠偏好
+    if (safeStorage.get('dailyTipCollapsed', 'no') === 'yes') {
+      document.getElementById('dailyTipBody').style.display = 'none';
+      document.getElementById('tipToggleBtn').textContent = '▼';
+    }
+
+    const today = tipTodayKey();
+    const cache = safeStorage.getJSON('dailyTipCache', null);
+
+    // 先显示：今天已有缓存就用缓存，否则先用本地内容兜底，保证秒开、永不空白
+    if (cache && cache.date === today && cache.data) {
+      renderDailyTip(cache.data, cache.live);
+      if (cache.live) return; // 今天已成功拉过实时内容，不再重复请求，省流量
+    } else {
+      renderDailyTip(getLocalDailyTip(), false);
+    }
+
+    // 后台静默拉取最新内容（联网实时更新），失败则保持兜底、不打扰
+    try {
+      const fresh = await fetchDailyTip();
+      renderDailyTip(fresh, true);
+      safeStorage.setJSON('dailyTipCache', { date: today, data: fresh, live: true });
+    } catch (e) {
+      console.warn('每日提醒实时更新失败，已使用本地内容：', e);
+    }
+  }
+
+  // 手动刷新（强制重新联网拉取一条）
+  async function refreshDailyTip() {
+    const btn = document.getElementById('tipRefreshBtn');
+    btn.disabled = true; const old = btn.textContent; btn.textContent = '⏳';
+    try {
+      const fresh = await fetchDailyTip();
+      renderDailyTip(fresh, true);
+      safeStorage.setJSON('dailyTipCache', { date: tipTodayKey(), data: fresh, live: true });
+    } catch (e) {
+      renderDailyTip(getLocalDailyTip(), false);
+      alert('暂时没拉到最新提醒，已为您显示一条防骗锦囊。');
+    } finally {
+      btn.disabled = false; btn.textContent = old;
+    }
+  }
+
+  // 展开/收起
+  function toggleDailyTip() {
+    const body = document.getElementById('dailyTipBody');
+    const collapsed = body.style.display === 'none';
+    body.style.display = collapsed ? 'block' : 'none';
+    document.getElementById('tipToggleBtn').textContent = collapsed ? '▲' : '▼';
+    safeStorage.set('dailyTipCollapsed', collapsed ? 'no' : 'yes');
+  }
+
+  // ==========================================
+  // 【转账冷静期】
+  // ==========================================
+  let cooldownTimer = null;
+  let cooldownLeft = 30;
+
+  function resetCooldownView() {
+    if (cooldownTimer) { clearInterval(cooldownTimer); cooldownTimer = null; }
+    document.getElementById('cooldownStart').style.display = 'block';
+    document.getElementById('cooldownArea').style.display = 'none';
+    document.getElementById('cooldownResult').style.display = 'none';
+  }
+
+  function startCooldown() {
+    document.getElementById('cooldownStart').style.display = 'none';
+    document.getElementById('cooldownArea').style.display = 'block';
+    document.getElementById('cooldownResult').style.display = 'none';
+    document.querySelectorAll('.cool-q').forEach(c => c.checked = false);
+
+    cooldownLeft = 30;
+    const num = document.getElementById('cooldownNum');
+    const ring = document.getElementById('cooldownRing');
+    const tip = document.getElementById('cooldownTip');
+    const btn = document.getElementById('cooldownCheckBtn');
+    ring.classList.remove('done');
+    num.textContent = cooldownLeft;
+    tip.textContent = '先深呼吸，一边看下面几个问题，一边想一想……';
+    btn.disabled = true;
+    btn.textContent = `⏳ 请先冷静 ${cooldownLeft} 秒……`;
+    document.getElementById('cooldownArea').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    if (cooldownTimer) clearInterval(cooldownTimer);
+    cooldownTimer = setInterval(() => {
+      cooldownLeft--;
+      if (cooldownLeft > 0) {
+        num.textContent = cooldownLeft;
+        btn.textContent = `⏳ 请先冷静 ${cooldownLeft} 秒……`;
+      } else {
+        clearInterval(cooldownTimer); cooldownTimer = null;
+        num.textContent = '✓';
+        ring.classList.add('done');
+        tip.textContent = '好，您已经冷静下来了。现在点下面的按钮看结论。';
+        btn.disabled = false;
+        btn.textContent = '✅ 我已认真核对，查看结论';
+      }
+    }, 1000);
+  }
+
+  function showCooldownResult() {
+    const checks = Array.from(document.querySelectorAll('.cool-q'));
+    const checkedCount = checks.filter(c => c.checked).length;
+    const killerChecked = checks.filter(c => c.checked && c.dataset.killer === '1').length;
+    const resultDiv = document.getElementById('cooldownResult');
+
+    let cls, html;
+    if (killerChecked >= 1 || checkedCount >= 2) {
+      cls = 'detect-danger';
+      html = `<h3>🚨 危险！请立刻停止转账</h3>
+        <p>您勾选了 <strong>${checkedCount}</strong> 条危险信号${killerChecked ? '，其中包含骗子最常用的致命套路' : ''}。这极可能是一场诈骗。</p>
+        <p style="margin-top:0.75rem;font-weight:bold;font-size:1.25rem;color:#b71c1c;">请记住：先别转！真正的家人、银行、政府部门，都不怕您慢下来核实。</p>
+        <p style="margin-top:0.75rem;"><strong>现在请做这 3 件事：</strong></p>
+        <ul style="margin:0.5rem 0 0 1.5rem;line-height:2;">
+          <li>1. 立刻停止操作，钱先别转出去</li>
+          <li>2. 打电话给子女，或拨打反诈专线 96110 核实</li>
+          <li>3. 当面或视频确认对方真实身份</li>
+        </ul>`;
+    } else if (checkedCount === 1) {
+      cls = 'detect-warning';
+      html = `<h3>⚠️ 请再谨慎一些</h3>
+        <p>您勾选了 1 条需要注意的情况。建议先别急着转，跟家人说一声、确认清楚了再决定。</p>`;
+    } else {
+      cls = 'detect-safe';
+      html = `<h3>✅ 暂时没发现明显危险信号</h3>
+        <p>不过转账前，最好还是跟家人说一声，多一个人把关更安心。任何时候有疑问，都可以回来再核对一遍。</p>`;
+    }
+
+    const showActions = (cls !== 'detect-safe');
+    html += `<div class="forward-box">
+        <p class="forward-tip">${showActions ? '🆘 马上找人帮您把关：' : '👨‍👩‍👧 想让家人也知道一声？'}</p>
+        <div class="forward-btns">
+          <button class="btn-forward" onclick="forwardCooldown()">📨 把情况发给子女</button>
+          <button class="btn-call-family" onclick="callFamilyFromDetect()">📞 打给子女</button>
+          ${showActions ? '<button class="btn-copy-content" style="background:#d32f2f;" onclick="callAntiFraud()">📞 拨打反诈专线96110</button>' : ''}
+        </div>
+      </div>`;
+
+    resultDiv.className = `detect-result ${cls}`;
+    resultDiv.innerHTML = html;
+    resultDiv.style.display = 'block';
+    resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function forwardCooldown() {
+    const checkedCount = Array.from(document.querySelectorAll('.cool-q')).filter(c => c.checked).length;
+    const body = `【安享盾】我正打算转一笔钱，App的"转账冷静期"提示我有 ${checkedCount} 条危险信号、可能是诈骗。我先停下来了，你帮我看看这钱到底该不该转？`;
+    forwardMessageToFamily(body);
+  }
+
+  function callAntiFraud() {
+    if (confirm('确定要拨打反诈专线 96110 吗？')) { lastCallTime = Date.now(); window.location.href = 'tel:96110'; }
+  }
+
+  // ==========================================
+  // 【对话式话术拆解】
+  // ==========================================
+  let guardHistory = [];
+  const guardExamples = [
+    "他自称是公安局的，说我的银行卡涉嫌一起洗钱案件",
+    "他让我下载一个叫'安全防护'的App，说能保护我的账户",
+    "短信说我中了一台苹果电脑，让我先交100元手续费来领取",
+    "微信上一个头像是我儿子的人，说他出车祸了急需3万块钱"
+  ];
+
+  function fillGuard(i) {
+    const input = document.getElementById('guardInput');
+    input.value = guardExamples[i]; input.focus();
+  }
+
+  function addGuardMsg(text, isUser, isHtml) {
+    const box = document.getElementById('guardBox');
+    const msg = document.createElement('div');
+    msg.className = isUser ? 'msg user' : 'msg bot';
+    if (isHtml) { msg.innerHTML = text; }
+    else { msg.style.whiteSpace = 'pre-wrap'; msg.textContent = text; }
+    box.appendChild(msg);
+    box.scrollTop = box.scrollHeight;
+    return msg;
+  }
+
+  function resetGuard() {
+    guardHistory = [];
+    document.getElementById('guardBox').innerHTML = '<div class="msg bot">好的，咱们重新开始。把对方说的话发给我吧，一句一句来。🛡️</div>';
+    document.getElementById('guardAlert').style.display = 'none';
+  }
+
+  async function guardSend() {
+    const input = document.getElementById('guardInput');
+    const text = input.value.trim();
+    if (!text) { alert('请把对方说的话输进来～'); input.focus(); return; }
+
+    addGuardMsg(text, true);
+    input.value = ''; input.disabled = true;
+    guardHistory.push({ role: 'user', content: text });
+    const thinking = addGuardMsg('🤖 正在帮您分析……', false);
+
+    try {
+      const sysPrompt = `你是"安享盾"的反诈陪护专家。用户会把【对方】（疑似骗子）说的话一句一句发给你。请结合前面的对话上下文，每次都用亲切口语、简短地分析，并严格只输出如下JSON（不要多余文字）：{"risk":"高危/可疑/正常","intent":"对方这句话想达到的目的(20字内)","step":"现在大概处于骗局的哪一步(20字内)","next":"骗子下一步很可能会做什么(30字内)","advice":"老人现在应该怎么做(30字内，明确动作)"}`;
+      const res = await fetch("https://api.deepseek.com/chat/completions", {
+        method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${DEEPSEEK_KEY}` },
+        body: JSON.stringify({ model: "deepseek-chat", max_tokens: 600, messages: [{ role: "system", content: sysPrompt }, ...guardHistory] })
+      });
+      const data = await res.json();
+      const raw = data.choices?.[0]?.message?.content || '';
+      const m = raw.match(/\{[\s\S]*\}/);
+      if (!m) throw new Error('解析失败');
+      const r = JSON.parse(m[0]);
+      guardHistory.push({ role: 'assistant', content: raw });
+      thinking.remove();
+
+      const color = r.risk === '高危' ? '#d32f2f' : r.risk === '可疑' ? '#f57f17' : '#2e7d32';
+      const emoji = r.risk === '高危' ? '🔴' : r.risk === '可疑' ? '🟡' : '🟢';
+      const html = `<span class="guard-step" style="background:${color};color:#fff;">${emoji} ${r.risk}</span><br>
+        <strong>🎯 他想干嘛：</strong>${r.intent || ''}<br>
+        <strong>📍 到哪一步了：</strong>${r.step || ''}<br>
+        <strong>⏭️ 下一步可能：</strong>${r.next || ''}<br>
+        <strong>✅ 您现在该：</strong><span style="color:${color};font-weight:bold;">${r.advice || ''}</span>`;
+      addGuardMsg(html, false, true);
+
+      if (r.risk === '高危') showGuardAlert();
+    } catch (e) {
+      thinking.remove();
+      addGuardMsg('网络好像开小差了，这句没能分析。但请记住：凡是催您转账、要验证码、要您下载软件、不让告诉家人的，都极可能是骗子。拿不准就先停下，打电话问子女或96110。', false);
+    }
+    input.disabled = false; input.focus();
+  }
+
+  function showGuardAlert() {
+    const a = document.getElementById('guardAlert');
+    a.innerHTML = `🚨 <strong>已识别出高危诈骗信号！</strong> 请立刻停止跟对方的一切操作——钱、验证码、密码都不要给。马上找人帮您核实：
+      <div class="guard-alert-btns">
+        <button class="btn-forward" onclick="forwardGuard()">📨 把对话发给子女</button>
+        <button class="btn-call-family" onclick="callFamilyFromDetect()">📞 打给子女</button>
+        <button class="btn-copy-content" style="background:#d32f2f;" onclick="callAntiFraud()">📞 拨打96110</button>
+      </div>`;
+    a.style.display = 'block';
+    a.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function forwardGuard() {
+    const said = guardHistory.filter(h => h.role === 'user').map(h => h.content).join('；').slice(0, 300);
+    const body = `【安享盾】我正在跟一个可疑的人联系，App提示是高危诈骗。对方说的话大概是："${said}"。我已经停下来了，你快帮我看看，别让我上当！`;
+    forwardMessageToFamily(body);
+  }
+
+  async function detectFraud() {
+    const input = document.getElementById('detectInput').value.trim();
+    const btn = document.getElementById('detectBtn');
+    const resultDiv = document.getElementById('detectResult');
+    if (!input) { alert("请先粘贴需要检测的内容！"); return; }
+
+    btn.disabled = true; btn.textContent = '🔍 AI分析中，请稍候……'; resultDiv.style.display = 'none';
+
+    try {
+      const detectSystemPrompt = `你是一个专业的反诈骗智能检测系统。判断是否诈骗。严格按以下JSON格式回复：{"risk":"高危/疑似/安全","type":"诈骗类型","reason":"判断理由","warning":["危险信号"],"advice":["建议"]}。其中advice要给老年人能马上照做的具体动作（如：不要点链接、先挂断、打官方电话核实、不要转账等），语气亲切。`;
+      const sceneText = detectScene === 'call' ? '用户刚接到一个电话，以下是对方在电话里说的话' : detectScene === 'sms' ? '用户刚收到一条短信，以下是短信内容' : '以下是用户提供的可疑内容';
+      const res = await fetch("https://api.deepseek.com/chat/completions", {
+        method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${DEEPSEEK_KEY}` },
+        body: JSON.stringify({ model: "deepseek-chat", max_tokens: 1000, messages: [{ role: "system", content: detectSystemPrompt }, { role: "user", content: `${sceneText}：\n\n${input}` }] })
+      });
+      const data = await res.json();
+      const rawText = data.choices?.[0]?.message?.content || '';
+
+      let result;
+      const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+      try { result = JSON.parse(jsonMatch ? jsonMatch[0] : rawText); } catch { throw new Error('解析失败'); }
+
+      // 存下本次检测，供"转发给子女"使用
+      window.__lastDetect = { content: input, risk: result.risk, type: result.type, scene: detectScene };
+
+      const riskClass = result.risk === '高危' ? 'detect-danger' : result.risk === '疑似' ? 'detect-warning' : 'detect-safe';
+      const riskEmoji = result.risk === '高危' ? '🚨' : result.risk === '疑似' ? '⚠️' : '✅';
+      const warningHtml = Array.isArray(result.warning) ? result.warning.map(w => `<li>⚠️ ${w}</li>`).join('') : `<li>⚠️ ${result.warning}</li>`;
+      const adviceHtml = Array.isArray(result.advice) ? result.advice.map((a, i) => `<li>${i+1}. ${a}</li>`).join('') : `<li>1. ${result.advice}</li>`;
+
+      resultDiv.className = `detect-result ${riskClass}`;
+      resultDiv.innerHTML = `<h3>${riskEmoji} 检测结果</h3>
+        <div style="margin-bottom:1rem;"><span class="risk-tag" style="background:${result.risk==='高危'?'#d32f2f':result.risk==='疑似'?'#f57f17':'#2e7d32'};color:#fff;">${result.risk}风险</span><strong style="margin-left:0.5rem;">类型：${result.type}</strong></div>
+        <p style="margin-bottom:0.75rem;"><strong>📌 依据：</strong>${result.reason}</p>
+        ${result.warning && result.warning.length ? `<p><strong>🚩 危险信号：</strong></p><ul style="margin:0.5rem 0 1rem 1.5rem;line-height:2;">${warningHtml}</ul>` : ''}
+        <p><strong>💡 建议：</strong></p><ul style="margin:0.5rem 0 0 1.5rem;line-height:2;">${adviceHtml}</ul>
+        ${buildForwardBox()}`;
+      resultDiv.style.display = 'block'; resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } catch (err) {
+      // 网络异常也允许转发给子女（带上原始内容）
+      window.__lastDetect = { content: input, risk: '', type: '', scene: detectScene };
+      resultDiv.className = 'detect-result detect-warning';
+      resultDiv.innerHTML = `<h3>⚠️ 检测提示</h3><p>网络连接异常，暂时没法自动判断。请牢记：<strong>转账先核实、不点陌生链接</strong>，有疑问拨打反诈专线 96110。</p>${buildForwardBox()}`;
+      resultDiv.style.display = 'block';
+    }
+    btn.disabled = false; btn.textContent = '🔍 开始检测';
+  }
+
+  // ==========================================
+  // 【反诈大闯关游戏（含 AI 动态出题）】
+  // ==========================================
+  let gameScore = 0;
+  let currentQuestionIndex = 0;
+  let correctAnswers = 0;
+  let isDynamicGeneratedCurrent = false;
+
+  const allGameQuestions = [
+    { id: 1, title: "第1题：保健品促销", desc: "小区里有人说，只要花1万块钱买他们的'保健床垫'，就能免费体检、还能领鸡蛋大米，您觉得这靠谱吗？", options: ["A. 划算，赶紧买", "B. 骗局，得跟孩子商量"], correctAnswer: 1, explanation: "您可太聪明啦！好多骗子就用鸡蛋、小礼物哄咱们买没用的保健品，花了钱还伤身体，买东西之前一定要问问家里的年轻人哦～", category: "health" },
+    { id: 2, title: "第2题：冒充孙子要钱", desc: "微信上一个头像跟您孙子一模一样的人，说自己在学校出事了，急着要您转2万块钱医药费，您会马上转吗？", options: ["A. 赶紧转", "B. 打电话确认"], correctAnswer: 1, explanation: "答对啦！骗子会用假头像冒充咱们的孩子，一定要先打个电话听听是不是孩子本人的声音！", category: "telecom" },
+    { id: 3, title: "第3题：高收益投资", desc: "有人跟您说，有个'养老投资项目'，存10万进去，每个月能给您好几千块利息，您觉得这是好事吗？", options: ["A. 肯定赚钱", "B. 天上不会掉馅饼"], correctAnswer: 1, explanation: "太对啦！高息往往是骗子跑路的前兆，本金都可能拿不回来。天上不会掉馅饼～", category: "finance" },
+    { id: 4, title: "第4题：手机号被停用", desc: "手机上收到一条短信，说您的手机号被停用了，让您打短信里的电话去激活，您会打这个电话吗？", options: ["A. 赶紧打", "B. 去营业厅问"], correctAnswer: 1, explanation: "答对啦！手机号的事儿咱们直接去营业厅或者打官方电话，千万别信短信里的陌生号码！", category: "telecom" },
+    { id: 5, title: "第5题：免费旅游陷阱", desc: "社区组织老年人免费去外地旅游，包吃包住，只需带上身份证，您觉得可以放心去吗？", options: ["A. 觉得有诈不去", "B. 免费当然去"], correctAnswer: 0, explanation: "太棒啦！所谓'免费旅游'往往是带您去偏僻的地方强制高额消费，遇到这种一定要拒绝！", category: "health" },
+    { id: 6, title: "第6题：公检法来电", desc: "自称公安局的打来电话说您涉嫌洗钱，要求把钱转入'安全账户'，您该怎么做？", options: ["A. 配合调查马上转账", "B. 立刻挂断并报警"], correctAnswer: 1, explanation: "对！公检法绝对不会通过电话办案，更没有'安全账户'！别慌，直接挂断！", category: "telecom" },
+    { id: 7, title: "第7题：中奖通知短信", desc: "收到短信说手机号中了苹果电脑，要求先交100元税费，交吗？", options: ["A. 骗人的不理会", "B. 才100块交了试试"], correctAnswer: 0, explanation: "答对啦！凡是领奖前要求先交钱的，百分之百是诈骗！", category: "telecom" },
+    { id: 8, title: "第8题：网购退款理赔", desc: "客服打电话说您买的衣服丢了，要双倍赔偿给您，让您下载屏幕共享软件，下载吗？", options: ["A. 赶紧下载拿赔偿", "B. 挂断去官方核实"], correctAnswer: 1, explanation: "屏幕共享会让骗子看到您的密码和验证码，千万不能开！", category: "new" },
+    { id: 9, title: "第9题：AI声音合成", desc: "接到儿子电话说出车祸急需钱，声音一模一样但就是不肯开视频，转账吗？", options: ["A. 马上转账救人", "B. 挂断回拨核实"], correctAnswer: 1, explanation: "现在AI技术能模仿声音，遇到急事要钱必须多方视频核实！", category: "new" },
+    { id: 10, title: "第10题：以房养老骗局", desc: "有人推荐把房子抵押理财，说不仅能免费住还能每个月拿利息，靠谱吗？", options: ["A. 绝对是骗局", "B. 听起来不错试试"], correctAnswer: 0, explanation: "这种'以房养老'理财极易导致老人钱房两空，千万别信！", category: "finance" }
+  ];
+
+  let gameQuestions = [];
+
+  async function generateDynamicQuestions() {
+    if (questionsPlayedToday >= 30) { alert("您今天已答满30道题啦！劳逸结合，明天再来挑战。"); return; }
+    const btn1 = document.getElementById('btnGenerateQuestions');
+    const btn2 = document.getElementById('btnGenerateQuestionsEnd');
+    if (btn1) { btn1.disabled = true; btn1.textContent = "⏳ 正在准备题目..."; }
+    if (btn2) { btn2.disabled = true; btn2.textContent = "⏳ 正在准备题目..."; }
+
+    try {
+      const prompt = `你是一个针对中国老年人的防诈骗知识出题专家。请利用你的创造力，随机生成5道【全新且场景不同】的防诈骗选择题。不要总是生成老套的例子，可以结合最新的社会现象（如AI声音合成、快递理赔、短视频点赞诈骗等），让题目多样化。必须严格按以下JSON数组格式回复，不要输出其他任何内容：[{"id": 1,"title": "简短的骗局类型标题","desc": "详细的题目情景描述（适合老年人阅读，口语化且具有迷惑性）","options": ["A. 选项一", "B. 选项二"],"correctAnswer": 0或1,"explanation": "答对或答错后的详细亲切解释","category": "必须从[health, telecom, finance, new, education]这5个英文单词中选择最符合的一个类别填入"}]`;
+      const res = await fetch("https://api.deepseek.com/chat/completions", {
+        method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${DEEPSEEK_KEY}` },
+        body: JSON.stringify({ model: "deepseek-chat", max_tokens: 1800, messages: [{ role: "system", content: prompt }] })
+      });
+      const data = await res.json();
+      const rawText = data.choices?.[0]?.message?.content || '';
+      const jsonMatch = rawText.match(/\[[\s\S]*\]/);
+      const newQuestions = JSON.parse(jsonMatch[0]);
+
+      if (Array.isArray(newQuestions) && newQuestions.length === 5) {
+        gameQuestions = newQuestions.map((q, index) => { q.id = index + 1; return q; });
+        isDynamicGeneratedCurrent = true;
+        alert("🎉 新题目已准备就绪！开启全新挑战。");
+        startGame();
+      } else throw new Error("格式不正确");
+    } catch (err) {
+      console.error("生成题目失败", err);
+      alert("⚠️ 智能出题失败，可能网络开小差了，系统将从本地题库为您随机抽取题目。");
+      isDynamicGeneratedCurrent = false;
+      startGame();
+    } finally {
+      if (btn1) { btn1.disabled = false; btn1.textContent = "✨ 换一批新题开始挑战"; }
+      if (btn2) { btn2.disabled = false; btn2.textContent = "✨ 换一批新题继续挑战"; }
+    }
+  }
+
+  function startGame() {
+    if (questionsPlayedToday >= 30) { alert("今日30题上限已满！明天再来挑战吧！"); return; }
+
+    if (!isDynamicGeneratedCurrent) {
+      const shuffled = [...allGameQuestions].sort(() => 0.5 - Math.random());
+      gameQuestions = shuffled.slice(0, 5);
+      gameQuestions.forEach((q, index) => { q.id = index + 1; q.title = `第${index + 1}题：${q.title.split('：')[1] || '防骗知识'}`; });
+    }
+    isDynamicGeneratedCurrent = false;
+
+    gameScore = 0; correctAnswers = 0; currentQuestionIndex = 0;
+    document.getElementById('gameFinish').style.display = 'none'; document.getElementById('gameArea').style.display = 'block';
+    updateStatsDisplay(); showQuestion();
+  }
+
+  function showQuestion() {
+    if (questionsPlayedToday >= 30) { alert("恭喜您，今日30题上限已满！"); endGame(true); return; }
+    if (currentQuestionIndex >= gameQuestions.length) { endGame(false); return; }
+
+    const q = gameQuestions[currentQuestionIndex];
+    const optionsHtml = q.options.map((option, index) => `<button class="game-btn" onclick="answerQuestion(${index})">${option}</button>`).join('');
+
+    document.getElementById('gameArea').innerHTML = `
+      <div class="game-question">
+        <h3>${q.title}</h3>
+        <div class="game-desc">${q.desc}</div>
+        <div class="game-btns">${optionsHtml}</div>
+        <div id="questionResult" class="game-result" style="display:none;"></div>
+        <button class="next-btn" id="nextQuestionBtn" style="display:none;" onclick="nextQuestion()">下一题</button>
+      </div>
+    `;
+    document.getElementById('scoreShow').textContent = `答题进度：${currentQuestionIndex + 1}/${gameQuestions.length} | 本轮得分：${gameScore}分`;
+  }
+
+  function answerQuestion(selectedOption) {
+    const q = gameQuestions[currentQuestionIndex];
+    const resultDiv = document.getElementById('questionResult');
+    const buttons = document.querySelectorAll('.game-btn');
+    const nextBtn = document.getElementById('nextQuestionBtn');
+    const isCorrect = selectedOption === q.correctAnswer;
+
+    let currentQScore = 0;
+    buttons.forEach((btn, index) => {
+      btn.disabled = true;
+      if (index === q.correctAnswer) { btn.style.background = '#2e7d32'; btn.style.color = '#fff'; }
+      else if (index === selectedOption) { btn.style.background = '#d32f2f'; btn.style.color = '#fff'; }
+    });
+
+    const targetCategory = q.category || 'education';
+    const recVideo = getRecommendedVideoByCategory(targetCategory);
+
+    let videoHtml = `
+      <div class="game-video" id="gameVideoBox">
+        <p style="margin-bottom:0.75rem;font-weight:bold;font-size:1.1rem;color:${isCorrect ? '#157347' : '#d32f2f'};">
+           ${isCorrect ? '🎬 您太棒了！如果有时间，可以看看相关视频巩固一下：' : '📺 强烈建议您观看以下视频，加深防范：'}
+        </p>
+        <a href="${recVideo.link}" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;gap:0.75rem;background:${isCorrect ? 'var(--primary-color)' : 'var(--danger-color)'};color:#fff;padding:1rem 1.5rem;border-radius:var(--border-radius);text-decoration:none;font-size:1.15rem;font-weight:bold;">▶ 点击观看：《${recVideo.title}》</a>
+      </div>`;
+
+    if (isCorrect) {
+      correctAnswers++; currentQScore = 10;
+      resultDiv.className = "game-result result-correct";
+      resultDiv.innerHTML = `<strong>✅ 恭喜您答对了！积分 +10</strong><br><br>${q.explanation}${videoHtml}`;
+    } else {
+      currentQScore = 5;
+      resultDiv.className = "game-result result-wrong";
+      resultDiv.innerHTML = `<strong>❌ 回答错误，正确答案是${q.correctAnswer === 0 ? 'A' : 'B'}。积分 +5（参与奖励）</strong><br><br>${q.explanation}${videoHtml}`;
+    }
+    resultDiv.style.display = 'block';
+
+    dailyScore += currentQScore; totalScore += currentQScore; gameScore += currentQScore; questionsPlayedToday++;
+    safeStorage.set('antiFraudDailyScore', dailyScore);
+    safeStorage.set('antiFraudTotalScore', totalScore);
+    safeStorage.set('antiFraudQuestionsToday', questionsPlayedToday);
+
+    questionHistory.unshift({ title: q.title, desc: q.desc, userAnswer: q.options[selectedOption], correctAnswer: q.options[q.correctAnswer], isCorrect: isCorrect, explanation: q.explanation, videoLink: recVideo.link, videoTitle: recVideo.title, time: new Date().toLocaleString() });
+    if(questionHistory.length > 50) questionHistory.pop();
+    safeStorage.setJSON('antiFraudQuestionHistory', questionHistory);
+
+    updateStatsDisplay();
+    nextBtn.style.display = "block"; nextBtn.focus();
+    document.getElementById('scoreShow').textContent = `答题进度：${currentQuestionIndex + 1}/${gameQuestions.length} | 本轮得分：${gameScore}分`;
+  }
+
+  function nextQuestion() { currentQuestionIndex++; showQuestion(); }
+
+  function endGame(forced = false) {
+    let message = forced ? "🎯 今日挑战已达30题上限！劳逸结合，明天再来~" :
+      (correctAnswers === gameQuestions.length ? "🏆 太棒了！您本轮全对，防骗知识掌握得很好！" :
+       correctAnswers >= 3 ? "👍 不错！您的防骗意识比较强，继续保持。" :
+       "💡 还需要加强学习哦！多看反诈案例，提高警惕。");
+    document.getElementById('finalScoreShow').innerHTML = `<p style="font-size:1.2rem; margin-bottom:10px;">本轮答对：<strong>${correctAnswers}/${currentQuestionIndex}</strong> 题</p><p style="font-size:1.2rem;">本轮获得积分：<span style="color:#e65100; font-size:1.8rem; font-weight:bold; margin:0 5px;">${gameScore}</span>分</p><p style="font-size: 1.25rem; margin-top: 1rem; color:var(--primary-dark); font-weight:bold;">${message}</p>`;
+    document.getElementById('gameArea').style.display = 'none'; document.getElementById('gameFinish').style.display = "block";
+  }
+
+  // ==========================================
+  // 【答题记录弹窗】
+  // ==========================================
+  function showHistoryModal() {
+    const modal = document.getElementById('historyModal');
+    const body = document.getElementById('historyBody');
+    if (questionHistory.length === 0) {
+      body.innerHTML = '<div style="text-align:center; padding: 4rem 1rem; color: #666; font-size: 1.25rem;">暂无答题记录，快去挑战吧！</div>';
+    } else {
+      body.innerHTML = questionHistory.map(item => `
+        <div class="history-item ${item.isCorrect ? 'h-correct' : 'h-wrong'}">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+            <span class="h-tag ${item.isCorrect ? 'h-tag-correct' : 'h-tag-wrong'}">${item.isCorrect ? '✅ 答对了' : '❌ 答错了'}</span>
+            <span style="color:#888; font-size:0.9rem;">${item.time}</span>
+          </div>
+          <h4 style="margin-bottom:0.5rem; font-size:1.2rem;">${item.title}</h4>
+          <p style="margin-bottom:1rem; color:#444; line-height:1.6; font-size:1.1rem;">${item.desc}</p>
+          <div style="background:#f1f8ff; padding:1rem; border-radius:0.5rem; margin-bottom:1rem; border: 1px solid #d0e3ff;">
+            <p style="margin-bottom:${item.isCorrect ? '0' : '0.5rem'}; font-size:1.05rem;"><strong>您的选择：</strong><span style="color:${item.isCorrect ? 'var(--success-dark)' : 'var(--danger-color)'}; font-weight:bold;">${item.userAnswer}</span></p>
+            ${!item.isCorrect ? `<p style="margin-bottom:0; font-size:1.05rem;"><strong>正确答案：</strong><span style="color:var(--success-dark); font-weight:bold;">${item.correctAnswer}</span></p>` : ''}
+          </div>
+          <p style="color:#5d4037; background:#fff8e1; padding:1rem; border-radius:0.5rem; line-height:1.6; font-size:1.05rem; border: 1px solid #ffecb3; margin-bottom: 0;"><strong>💡 官方解析：</strong><br>${item.explanation}</p>
+          ${item.videoLink ? `<div style="margin-top:0.75rem; text-align:right;"><a href="${item.videoLink}" target="_blank" rel="noopener" style="display:inline-block; background:${item.isCorrect ? 'var(--primary-color)' : 'var(--danger-color)'}; color:#fff; padding:0.6rem 1rem; border-radius:var(--border-radius); text-decoration:none; font-weight:bold; font-size:1rem;">▶ ${item.isCorrect ? '巩固知识' : '补习防骗知识'}：《${item.videoTitle}》</a></div>` : ''}
+        </div>`).join('');
+    }
+    modal.classList.add('show');
+  }
+
+  function hideHistoryModal() { document.getElementById('historyModal').classList.remove('show'); }
+
+  // ==========================================
+  // 【紧急求助系统】
+  // ==========================================
+  let helpPanelOpen = false;
+  let lastCallTime = 0;
+
+  function toggleHelpPanel() {
+    helpPanelOpen = !helpPanelOpen;
+    document.getElementById('helpPanel').classList.toggle('show', helpPanelOpen);
+  }
+
+  function confirmCall(number) {
+    if (Date.now() - lastCallTime < 3000) return; // 防误触：3秒冷却
+    if (confirm(`确定要拨打 ${number} 吗？`)) {
+      lastCallTime = Date.now();
+      toggleHelpPanel();
+      window.location.href = `tel:${number}`;
+    }
+  }
+
+  function encrypt(text) {
+    return btoa(encodeURIComponent(text));
+  }
+
+  function decrypt(text) {
+    try { return decodeURIComponent(atob(text)); }
+    catch { return null; }
+  }
+
+  function handleFamily() {
+    const phone = decrypt(safeStorage.get('familyPhone', ''));
+    if (!phone) {
+      openSetModal();
+      return;
+    }
+    if (confirm(`确定要拨打子女电话吗？\n${phone}`)) {
+      lastCallTime = Date.now();
+      toggleHelpPanel();
+      window.location.href = `tel:${phone}`;
+    }
+  }
+
+  function openSetModal() {
+    document.getElementById('modalTitle').textContent = '设置子女电话';
+    document.getElementById('familyPhone').value = '';
+    document.getElementById('familyModal').classList.add('show');
+  }
+
+  function openEditModal() {
+    const phone = decrypt(safeStorage.get('familyPhone', ''));
+    document.getElementById('modalTitle').textContent = '修改子女电话';
+    document.getElementById('familyPhone').value = phone || '';
+    document.getElementById('familyModal').classList.add('show');
+    toggleHelpPanel();
+  }
+
+  function saveFamilyPhone() {
+    const phone = document.getElementById('familyPhone').value.trim();
+    if (!phone || !/^1\d{10}$/.test(phone)) {
+      alert('请输入有效的11位手机号码');
+      return;
+    }
+    safeStorage.set('familyPhone', encrypt(phone));
+    document.getElementById('familyModal').classList.remove('show');
+    alert('子女电话已保存成功！');
+  }
+
+  function closeFamilyModal() {
+    document.getElementById('familyModal').classList.remove('show');
+  }
+  </script>
+</body>
+</html>
